@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "stepup-app",
+    "slug": "stepup-app",
+    "scheme": "stepup-app",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
+
