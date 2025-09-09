@@ -8,8 +8,24 @@ module.exports = {
   ],
   presets: [require('nativewind/preset')],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'primary': '#26252F',
+        'secondary': '#5C5C5F',
+        'accent': '#D9D9D9',
+      },
+      fontFamily: {
+        'comfortaa': ['Comfortaa', 'sans-serif'],
+        'comfortaa-medium': ['Comfortaa_500Medium'],
+        'comfortaa-bold': ['Comfortaa_700Bold'],
+        'inter': ['Inter', 'sans-serif'],
+        'inter-medium': ['Inter_500Medium'],
+      },
+      fontSize: {
+        'time-inactive': ['36px', { lineHeight: '40px' }],
+        'time-active': ['48px', { lineHeight: '48px' }],
+      },
+    },
   },
   plugins: [],
 };
-

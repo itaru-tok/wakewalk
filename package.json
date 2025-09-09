@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "expo start --tunnel",
+    "dev": "expo start --web --tunnel",
     "dev:tunnel": "expo start --tunnel -c",
     "dev:lan": "expo start --lan -c",
     "dev:local": "expo start --localhost -c",
@@ -13,7 +13,8 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@expo-google-fonts/comfortaa": "^0.4.1",
@@ -24,15 +25,21 @@
     "expo": "~53.0.0",
     "expo-font": "^13.3.2",
     "expo-health-kit": "^1.0.8",
+    "expo-linear-gradient": "~14.1.5",
     "expo-router": "~5.1.5",
     "nativewind": "^4.0.36",
     "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-native": "0.79.5",
+    "react-native-css-interop": "^0.1.22",
     "react-native-modal-datetime-picker": "^14.0.0",
     "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.1"
+    "react-native-screens": "~4.11.1",
+    "react-native-svg": "^15.12.1",
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
+    "react-native-svg-transformer": "^1.5.1",
     "tailwindcss": "^3.4.7",
     "typescript": "~5.8.3"
   }
