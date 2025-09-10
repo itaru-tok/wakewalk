@@ -22,8 +22,8 @@ module.exports = {
         'inter-medium': ['Inter_500Medium'],
       },
       fontSize: {
-        'time-inactive': ['36px', { lineHeight: '40px' }],
-        'time-active': ['48px', { lineHeight: '48px' }],
+        'time-inactive': ['48px', { lineHeight: '48px' }],
+        'time-active': ['72px', { lineHeight: '72px' }],
       },
     },
   },

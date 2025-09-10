@@ -43,7 +43,7 @@ export default function HomeScreen() {
             
             {/* Colon Separator */}
             <View className="mx-2">
-              <Text className="text-[48px] text-accent font-inter font-medium">:</Text>
+              <Text className="text-time-active text-accent font-comfortaa font-medium">:</Text>
             </View>
             
             {/* Minutes Picker */}
@@ -65,7 +65,7 @@ export default function HomeScreen() {
               onValueChange={setSoundEnabled}
               className="mb-6"
             />
-            <SettingRow
+            {/* <SettingRow
               title="Vibrate"
               subtitle="Basic Call"
               value={vibrateEnabled}
@@ -77,7 +77,7 @@ export default function HomeScreen() {
               subtitle="5 minutes, 3 times"
               value={snoozeEnabled}
               onValueChange={setSnoozeEnabled}
-            />
+            /> */}
           </View>
         </View>
       </SafeAreaView>
@@ -95,9 +95,9 @@ export default function HomeScreen() {
         </TouchableOpacity>
         
         {/* Settings Nav Item */}
-        <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
+        {/* <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
           <SettingsIcon width={26} height={32} fill={colors.accent} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

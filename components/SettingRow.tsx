@@ -20,13 +20,12 @@ export default function SettingRow({
   return (
     <View className={`flex flex-row items-center justify-between ${className}`}>
       <View>
-        <Text className="font-inter font-medium text-base text-primary">{title}</Text>
+        <Text className="font-comfortaa text-xl text-primary">{title}</Text>
         {subtitle ? (
-          <Text className="font-inter text-xs text-secondary">{subtitle}</Text>
+          <Text className="font-comfortaa text-sm text-secondary">{subtitle}</Text>
         ) : null}
       </View>
       <CustomSwitch value={value} onValueChange={onValueChange} />
     </View>
   );
 }
-

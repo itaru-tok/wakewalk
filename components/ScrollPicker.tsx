@@ -102,7 +102,7 @@ export default function ScrollPicker({
         }}
       >
         <Text
-          className={`text-center font-inter font-medium ${
+          className={`text-center font-comfortaa font-medium ${
             isSelected ? 'text-time-active text-accent' : 'text-time-inactive text-secondary'
           }`}
         >
