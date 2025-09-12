@@ -10,6 +10,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.itaruo93o.stepup-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5208fc49-a71a-4e46-aec6-2757f3962680"
+      }
     }
   }
 }

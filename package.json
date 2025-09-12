@@ -5,16 +5,22 @@
   "main": "index.js",
   "scripts": {
     "dev": "expo start --web --tunnel",
+    "dev:client": "expo start --dev-client --tunnel",
     "dev:tunnel": "expo start --tunnel -c",
     "dev:lan": "expo start --lan -c",
     "dev:local": "expo start --localhost -c",
     "start": "expo start",
-    "ios": "expo start --ios",
-    "android": "expo start --android",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "icons": "node scripts/generate-icons.js"
+    "icons": "node scripts/generate-icons.js",
+    "eas": "eas",
+    "eas:login": "eas login",
+    "build:dev:ios": "eas build --platform ios --profile development",
+    "build:preview:ios": "eas build --platform ios --profile preview",
+    "prebuild:ios": "npx expo prebuild -p ios --clean"
   },
   "dependencies": {
     "@expo-google-fonts/comfortaa": "^0.4.1",
@@ -24,6 +30,7 @@
     "@types/react": "~19.1.12",
     "expo": "~54.0.2",
     "expo-constants": "~18.0.8",
+    "expo-dev-client": "~6.0.12",
     "expo-font": "^14.0.8",
     "expo-linear-gradient": "~15.0.7",
     "expo-linking": "~8.0.8",
