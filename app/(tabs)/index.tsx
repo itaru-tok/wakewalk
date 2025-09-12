@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlarmIcon, StatsIcon, SettingsIcon } from '../../components/icons';
 import ScrollPicker from '../../components/ScrollPicker';
 import SettingRow from '../../components/SettingRow';
@@ -18,7 +19,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-primary">
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['top']}>
         <StatusBar barStyle="light-content" />
         
         {/* App Header */}
@@ -83,22 +84,24 @@ export default function HomeScreen() {
       </SafeAreaView>
       
       {/* Bottom Navigation */}
-      <View className="h-20 bg-primary flex flex-row items-center justify-around px-8 pb-4 pt-2">
-        {/* Alarm Nav Item (Active) */}
-        <TouchableOpacity className="flex-1 flex items-center justify-center">
-          <AlarmIcon width={28} height={31} fill={colors.accent} />
-        </TouchableOpacity>
-        
-        {/* Stats Nav Item */}
-        <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
-          <StatsIcon width={24} height={28} fill={colors.accent} />
-        </TouchableOpacity>
-        
-        {/* Settings Nav Item */}
-        {/* <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
-          <SettingsIcon width={26} height={32} fill={colors.accent} />
-        </TouchableOpacity> */}
-      </View>
+      <SafeAreaView edges={['bottom']}>
+        <View className="h-20 bg-primary flex flex-row items-center justify-around px-8 pb-4 pt-2">
+          {/* Alarm Nav Item (Active) */}
+          <TouchableOpacity className="flex-1 flex items-center justify-center">
+            <AlarmIcon width={28} height={31} fill={colors.accent} />
+          </TouchableOpacity>
+          
+          {/* Stats Nav Item */}
+          <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
+            <StatsIcon width={24} height={28} fill={colors.accent} />
+          </TouchableOpacity>
+          
+          {/* Settings Nav Item */}
+          {/* <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
+            <SettingsIcon width={26} height={32} fill={colors.accent} />
+          </TouchableOpacity> */}
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
