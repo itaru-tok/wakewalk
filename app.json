@@ -3,10 +3,13 @@
     "name": "stepup-app",
     "slug": "stepup-app",
     "scheme": "stepup-app",
-    "plugins": ["expo-router"],
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
     "experiments": {
       "typedRoutes": true
     }
   }
 }
-
