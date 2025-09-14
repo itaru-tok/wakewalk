@@ -5,7 +5,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
+    "src/types/expo-env.d.ts",
+    "src/types/nativewind-env.d.ts",
+    "src/types/global.d.ts"
   ]
 }
