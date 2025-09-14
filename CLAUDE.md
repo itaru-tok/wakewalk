@@ -24,7 +24,9 @@ pnpm web           # Start web version
 
 # Code quality
 pnpm typecheck     # Run TypeScript type checking
-pnpm lint          # Run ESLint
+pnpm lint          # Run Biome linting
+pnpm lint:fix      # Run Biome linting with auto-fix
+pnpm format        # Format code with Biome
 ```
 
 ## Architecture

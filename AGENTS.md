@@ -14,7 +14,7 @@
 - `npm run ios` | `android` | `web`: Launch platform-specific bundler.
 - `npm run start`: Default Expo start.
 - `npm run typecheck`: TypeScript type checking (`tsc --noEmit`).
-- `npm run lint`: Lint codebase (ensure ESLint is installed locally).
+- `npm run lint`: Lint codebase using Biome.
 
 ## Coding Style & Naming Conventions
 - Language: TypeScript. Components as functional components in `.tsx`.
@@ -31,7 +31,7 @@
 ## Commit & Pull Request Guidelines
 - Commits: Short, imperative present tense (e.g., "add stats screen"). Scope optional. Group related changes.
 - PRs: Include summary, rationale, screenshots/GIFs for UI, and steps to verify. Link issues.
-- Checks: Run `npm run typecheck` and `npm run lint` before submitting. Confirm iOS/Android/Web screens load via `expo start`.
+- Checks: Run `npm run typecheck` and `npm run lint` before submitting. Use `npm run lint:fix` to auto-fix issues. Confirm iOS/Android/Web screens load via `expo start`.
 
 ## Security & Configuration Tips
 - Do not commit secrets. Use env mechanisms supported by Expo if needed.

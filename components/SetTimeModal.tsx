@@ -1,6 +1,5 @@
-import React from 'react';
-import { Text } from 'react-native';
+import { Text } from 'react-native'
 
 export default function SetTimeModal() {
-  return <Text className="text-base">SetTimeModal</Text>;
+  return <Text className="text-base">SetTimeModal</Text>
 }
