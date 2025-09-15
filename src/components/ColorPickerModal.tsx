@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useState } from 'react'
 import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
+// TODO: remove ColorPickerModal
 interface ColorPickerModalProps {
   visible: boolean
   onClose: () => void

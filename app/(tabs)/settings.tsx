@@ -1,3 +1,5 @@
+// TODO: use SwiftUI Components from @expo/ui/swift-ui
+// TODO: use ColorPicker from @expo/ui/swift-ui
 import { ColorPicker, Host } from '@expo/ui/swift-ui'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'

@@ -1,3 +1,4 @@
+// TODO: use SwiftUI Components from @expo/ui/swift-ui
 import { Ionicons } from '@expo/vector-icons'
 import Slider from '@react-native-community/slider'
 import { useCallback, useMemo, useState } from 'react'
