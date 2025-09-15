@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 
 const ICONS_DIR = path.join(__dirname, '../assets/icons')
 const OUTPUT_DIR = path.join(__dirname, '../components/icons')
@@ -122,7 +122,7 @@ svgFiles.forEach((file) => {
 })
 
 // Create index file
-fs.writeFileSync(INDEX_FILE, exportStatements.join('\n') + '\n')
+fs.writeFileSync(INDEX_FILE, `${exportStatements.join('\n')}\n`)
 console.log(`\n✅ Generated index.ts with ${svgFiles.length} icons`)
 
 console.log(`\n🎉 Successfully generated ${svgFiles.length} icon components!`)

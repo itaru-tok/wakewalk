@@ -1,107 +1,111 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AlarmIcon, StatsIcon, SettingsIcon } from '../../components/icons';
-import ScrollPicker from '../../components/ScrollPicker';
-import SettingRow from '../../components/SettingRow';
-import { colors } from '../../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient'
+import { useCallback, useState } from 'react'
+import { StatusBar, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import AlarmSettings from '../../src/components/AlarmSettings'
+import ScrollPicker from '../../src/components/ScrollPicker'
+import SnoozeOptions from '../../src/components/SnoozeOptions'
+import SoundSelectionPage from '../../src/components/SoundSelectionPage'
+import { useTheme } from '../../src/context/ThemeContext'
+import { getDarkerShade } from '../../src/utils/color'
 
 export default function HomeScreen() {
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [vibrateEnabled, setVibrateEnabled] = useState(true);
-  const [snoozeEnabled, setSnoozeEnabled] = useState(false);
-  const [selectedHour, setSelectedHour] = useState(19);
-  const [selectedMinute, setSelectedMinute] = useState(30);
-  
-  // Generate arrays for hours and minutes
-  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+  const { themeMode, themeColor, gradientColors } = useTheme()
+
+  const [selectedHour, setSelectedHour] = useState(19)
+  const [selectedMinute, setSelectedMinute] = useState(30)
+  const [currentPage, setCurrentPage] = useState<'main' | 'sound' | 'snooze'>(
+    'main',
+  )
+
+  const hours = Array.from({ length: 24 }, (_, i) =>
+    i.toString().padStart(2, '0'),
+  )
+  const minutes = Array.from({ length: 60 }, (_, i) =>
+    i.toString().padStart(2, '0'),
+  )
+
+  const getBackgroundColors = useCallback(() => {
+    if (themeMode === 'color') {
+      return [themeColor, getDarkerShade(themeColor), '#000000'] as const
+    } else {
+      return [...gradientColors, '#000000'] as unknown as [
+        string,
+        string,
+        ...string[],
+      ]
+    }
+  }, [themeMode, themeColor, gradientColors])
+
+  // Navigation pages will handle their own state internally
+  if (currentPage === 'sound') {
+    return <SoundSelectionPage onBack={() => setCurrentPage('main')} />
+  }
+
+  if (currentPage === 'snooze') {
+    return <SnoozeOptions onBack={() => setCurrentPage('main')} />
+  }
 
   return (
-    <View className="flex-1 bg-primary">
+    <LinearGradient
+      colors={getBackgroundColors()}
+      style={{ flex: 1, padding: 10 }}
+      locations={themeMode === 'color' ? [0, 0.5, 1] : undefined}
+    >
       <SafeAreaView className="flex-1" edges={['top']}>
         <StatusBar barStyle="light-content" />
-        
-        {/* App Header */}
-        <View className="h-16 px-6 flex flex-row items-center justify-between bg-primary">
-          <Text className="font-comfortaa font-bold text-2xl text-accent">StepUp</Text>
-          <View className="w-3 h-3" />
+
+        {/* Header */}
+        <View className="px-6">
+          <Text className="font-comfortaa font-bold text-2xl">StepUp</Text>
         </View>
-        
-        {/* Main Content */}
-        <View className="flex-1">
-          
+
+        {/* Content Container */}
+        <View className="flex-1 justify-between">
           {/* Time Picker Section */}
-          <View className="flex-1 flex flex-row items-center justify-center">
-            {/* Hours Picker */}
-            <View className="flex-1 max-w-[120px]">
-              <ScrollPicker
-                items={hours}
-                selectedIndex={selectedHour}
-                onValueChange={setSelectedHour}
-              />
-            </View>
-            
-            {/* Colon Separator */}
-            <View className="mx-2">
-              <Text className="text-time-active text-accent font-comfortaa font-medium">:</Text>
-            </View>
-            
-            {/* Minutes Picker */}
-            <View className="flex-1 max-w-[120px]">
-              <ScrollPicker
-                items={minutes}
-                selectedIndex={selectedMinute}
-                onValueChange={setSelectedMinute}
-              />
+          <View className="flex-1 justify-center">
+            <View className="h-[300px] flex flex-row items-center justify-center px-6">
+              <View className="flex-1 max-w-[120px]">
+                <ScrollPicker
+                  items={hours}
+                  selectedIndex={selectedHour}
+                  onValueChange={setSelectedHour}
+                />
+              </View>
+
+              {/* Colon Separator */}
+              <View className="mx-2">
+                <Text
+                  style={{
+                    fontSize: 50,
+                    color: '#ffffff',
+                    fontFamily: 'Comfortaa_700Bold',
+                  }}
+                >
+                  :
+                </Text>
+              </View>
+
+              {/* Minutes Picker */}
+              <View className="flex-1 max-w-[120px]">
+                <ScrollPicker
+                  items={minutes}
+                  selectedIndex={selectedMinute}
+                  onValueChange={setSelectedMinute}
+                />
+              </View>
             </View>
           </View>
-          
-          {/* Settings Card */}
-          <View className="bg-accent rounded-t-3xl px-6 pt-6 pb-8">
-            <SettingRow
-              title="Sound"
-              subtitle="Bip Bip"
-              value={soundEnabled}
-              onValueChange={setSoundEnabled}
-              className="mb-6"
+
+          {/* Alarm Settings Section */}
+          <View style={{ marginBottom: 110 }}>
+            <AlarmSettings
+              onSoundPress={() => setCurrentPage('sound')}
+              onSnoozePress={() => setCurrentPage('snooze')}
             />
-            {/* <SettingRow
-              title="Vibrate"
-              subtitle="Basic Call"
-              value={vibrateEnabled}
-              onValueChange={setVibrateEnabled}
-              className="mb-6"
-            />
-            <SettingRow
-              title="Snooze"
-              subtitle="5 minutes, 3 times"
-              value={snoozeEnabled}
-              onValueChange={setSnoozeEnabled}
-            /> */}
           </View>
         </View>
       </SafeAreaView>
-      
-      {/* Bottom Navigation */}
-      <SafeAreaView edges={['bottom']}>
-        <View className="h-20 bg-primary flex flex-row items-center justify-around px-8 pb-4 pt-2">
-          {/* Alarm Nav Item (Active) */}
-          <TouchableOpacity className="flex-1 flex items-center justify-center">
-            <AlarmIcon width={28} height={31} fill={colors.accent} />
-          </TouchableOpacity>
-          
-          {/* Stats Nav Item */}
-          <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
-            <StatsIcon width={24} height={28} fill={colors.accent} />
-          </TouchableOpacity>
-          
-          {/* Settings Nav Item */}
-          {/* <TouchableOpacity className="flex-1 flex items-center justify-center opacity-60">
-            <SettingsIcon width={26} height={32} fill={colors.accent} />
-          </TouchableOpacity> */}
-        </View>
-      </SafeAreaView>
-    </View>
-  );
+    </LinearGradient>
+  )
 }

@@ -1,5 +1,4 @@
-import { GlassView } from 'expo-glass-effect'
-import { Dimensions, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 
 interface ScrollPickerProps {
   items: string[]
@@ -12,26 +11,12 @@ export default function LiquidGlassScrollPicker({
   selectedIndex,
   onValueChange,
 }: ScrollPickerProps) {
-  const itemHeight = 60
+  const itemHeight = 50
   const visibleItems = 5
   const containerHeight = itemHeight * visibleItems
 
   return (
     <View style={{ height: containerHeight, justifyContent: 'center' }}>
-      <GlassView
-        style={{
-          position: 'absolute',
-          top: itemHeight * 2,
-          left: 0,
-          right: 0,
-          height: itemHeight,
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          borderRadius: 12,
-          zIndex: 1,
-        }}
-        glassEffectStyle="clear"
-      />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         snapToInterval={itemHeight}
@@ -48,7 +33,7 @@ export default function LiquidGlassScrollPicker({
       >
         {items.map((item, index) => (
           <View
-            key={index}
+            key={`scroll-item-${item}`}
             style={{
               height: itemHeight,
               justifyContent: 'center',
@@ -57,11 +42,13 @@ export default function LiquidGlassScrollPicker({
           >
             <Text
               style={{
-                fontSize: index === selectedIndex ? 32 : 24,
-                fontWeight: index === selectedIndex ? 'bold' : 'normal',
+                fontSize: index === selectedIndex ? 50 : 24,
                 color:
                   index === selectedIndex ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                fontFamily: 'Comfortaa',
+                fontFamily:
+                  index === selectedIndex
+                    ? 'Comfortaa_700Bold'
+                    : 'Comfortaa_500Medium',
               }}
             >
               {item}

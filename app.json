@@ -9,9 +9,11 @@
       "typedRoutes": true
     },
     "ios": {
-      "bundleIdentifier": "com.itaruo93o.stepup-app",
+      "bundleIdentifier": "com.itaruo93o.stepup",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
+        "UIBackgroundModes": ["audio", "fetch", "remote-notification"]
       }
     },
     "extra": {
@@ -19,6 +21,9 @@
       "eas": {
         "projectId": "5208fc49-a71a-4e46-aec6-2757f3962680"
       }
+    },
+    "android": {
+      "package": "com.itaruo93o.stepupapp"
     }
   }
 }
