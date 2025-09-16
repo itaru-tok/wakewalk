@@ -74,7 +74,7 @@ export default function AlarmSettings({
           </View>
 
           {/* Critical Alert Slider */}
-          <View className="mb-4">
+          {/* <View className="mb-4">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-white text-lg font-comfortaa">
                 Critical Alert
@@ -128,7 +128,7 @@ export default function AlarmSettings({
                 </TouchableOpacity>
               </View>
             )}
-          </View>
+          </View> */}
 
           {/* Vibration Toggle */}
           <View className="mb-2">

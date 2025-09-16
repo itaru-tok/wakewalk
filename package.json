@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "expo start --tunnel -c",
     "dev:client": "expo start --dev-client --tunnel",
-    "ios": "expo run:ios --device \"iPhone 17 Pro\"",
+    "ios": "expo run:ios --device",
     "android": "expo run:android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",

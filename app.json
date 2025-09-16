@@ -9,7 +9,7 @@
       "typedRoutes": true
     },
     "ios": {
-      "bundleIdentifier": "com.itaruo93o.stepup",
+      "bundleIdentifier": "com.itaruo93o.stepup-app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
