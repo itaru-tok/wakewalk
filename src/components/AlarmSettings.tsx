@@ -1,6 +1,6 @@
 // TODO: use SwiftUI Components from @expo/ui/swift-ui
 import { Ionicons } from '@expo/vector-icons'
-import Slider from '@react-native-community/slider'
+// import Slider from '@react-native-community/slider'
 import { useCallback, useMemo, useState } from 'react'
 import { Switch, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
@@ -12,6 +12,7 @@ interface AlarmSettingsProps {
 }
 
 const soundOptions = [
+  { id: 'chiangmai', name: 'chiangmai_bird', file: 'chiangmai_bird.m4a' },
   { id: 'apex', name: 'Apex', file: 'apex.mp3' },
   { id: 'beacon', name: 'Beacon', file: 'beacon.mp3' },
   { id: 'bulletin', name: 'Bulletin', file: 'bulletin.mp3' },
@@ -23,21 +24,24 @@ export default function AlarmSettings({
   onSoundPress,
   onSnoozePress,
 }: AlarmSettingsProps) {
-  const { themeColor } = useTheme()
+  const { themeMode, themeColor, gradientColors } = useTheme()
 
   // All state managed internally
   const [snoozeEnabled, setSnoozeEnabled] = useState(false)
-  const [criticalAlertEnabled, setCriticalAlertEnabled] = useState(true)
-  const [criticalAlertVolume, setCriticalAlertVolume] = useState(0.7)
   const [vibrateEnabled, setVibrateEnabled] = useState(true)
   const [snoozeDuration] = useState(9)
   const [snoozeRepeatCount] = useState(3)
-  const [selectedSound] = useState('apex')
+  const [selectedSound] = useState('chiangmai')
+
+  const primaryAccent = useMemo(() => {
+    if (themeMode === 'color') return themeColor
+    return gradientColors[0] ?? themeColor
+  }, [gradientColors, themeColor, themeMode])
 
   const adjustedColor = useMemo(() => {
-    const isDarkColor = getColorBrightness(themeColor) < 100
-    return isDarkColor ? '#10B981' : themeColor
-  }, [themeColor])
+    const isDarkColor = getColorBrightness(primaryAccent) < 100
+    return isDarkColor ? '#10B981' : primaryAccent
+  }, [primaryAccent])
 
   const handleSwitchToggle = useCallback(
     (setter: (value: boolean) => void, value: boolean) => {

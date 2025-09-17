@@ -43,12 +43,12 @@ const builtInSounds = [
   { id: 'waves', name: 'Waves' },
 ]
 
-const importedSounds = [{ id: 'chiangmai', name: 'chiangmai' }]
+const importedSounds = [{ id: 'chiangmai', name: 'chiangmai_bird' }]
 
 export default function SoundSelectionPage({
   onBack,
 }: SoundSelectionPageProps) {
-  const [selectedSound, setSelectedSound] = useState('apex')
+  const [selectedSound, setSelectedSound] = useState('chiangmai')
   const [ringDuration, _setRingDuration] = useState(3)
   const [showAllImported, setShowAllImported] = useState(false)
 

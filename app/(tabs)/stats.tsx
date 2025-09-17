@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { theme } from '../../src/constants/theme'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fonts, theme } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDarkerShade } from '../../src/utils/color'
 
@@ -23,8 +23,12 @@ interface DayData {
 
 export default function HybridLiquidGlassStatsScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
+  const insets = useSafeAreaInsets()
+  const TAB_BAR_HEIGHT = 90
+  const bottomPadding = insets.bottom + TAB_BAR_HEIGHT + 12
   const [monthsData, setMonthsData] = useState<MonthData[]>([])
   const scrollViewRef = useRef<ScrollView>(null)
+  const shouldScrollToEndRef = useRef(false)
 
   const getBackgroundColors = useCallback(() => {
     if (themeMode === 'color') {
@@ -38,7 +42,7 @@ export default function HybridLiquidGlassStatsScreen() {
     }
   }, [themeMode, themeColor, gradientColors])
 
-  // PlatformColor は Web(react-native-web) では未実装のためフォールバック
+  // PlatformColor is not implemented on Web (react-native-web), so fall back
 
   const loadHealthData = useCallback(async () => {
     // Request permissions first
@@ -107,10 +111,7 @@ export default function HybridLiquidGlassStatsScreen() {
     }
 
     setMonthsData(monthsArray)
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: false })
-    }, 100)
+    shouldScrollToEndRef.current = true
   }, [])
 
   useEffect(() => {
@@ -157,10 +158,10 @@ export default function HybridLiquidGlassStatsScreen() {
   return (
     <LinearGradient
       colors={getBackgroundColors()}
-      style={{ flex: 1 }}
+      style={{ flex: 1, paddingBottom: bottomPadding }}
       locations={themeMode === 'color' ? [0, 0.5, 1] : undefined}
     >
-      <SafeAreaView style={{ flex: 1, padding: 30 }}>
+      <SafeAreaView style={{ flex: 1, padding: 30 }} edges={['top', 'bottom']}>
         {/* Header with Glass Effect */}
         {/* Main Content with Glass Background */}
         <View style={{ flexDirection: 'row' }}>
@@ -178,7 +179,11 @@ export default function HybridLiquidGlassStatsScreen() {
                   }}
                 >
                   <Text
-                    style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}
+                    style={{
+                      fontSize: 10,
+                      color: 'rgba(255,255,255,0.7)',
+                      fontFamily: fonts.comfortaa.medium,
+                    }}
                   >
                     {label}
                   </Text>
@@ -193,6 +198,11 @@ export default function HybridLiquidGlassStatsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: 20 }}
             style={{ flex: 1 }}
+            onContentSizeChange={() => {
+              if (!shouldScrollToEndRef.current) return
+              shouldScrollToEndRef.current = false
+              scrollViewRef.current?.scrollToEnd({ animated: false })
+            }}
           >
             <View style={{ flexDirection: 'row' }}>
               {monthsData.map((monthData, _monthIndex) => (
@@ -205,6 +215,7 @@ export default function HybridLiquidGlassStatsScreen() {
                       fontSize: 12,
                       color: 'rgba(255,255,255,0.7)',
                       marginBottom: 8,
+                      fontFamily: fonts.comfortaa.medium,
                     }}
                   >
                     {getMonthName(monthData.month)}
@@ -254,6 +265,7 @@ export default function HybridLiquidGlassStatsScreen() {
             fontSize: 12,
             color: 'rgba(255,255,255,0.7)',
             marginRight: 20,
+            fontFamily: fonts.comfortaa.medium,
           }}
         >
           Less
@@ -289,6 +301,7 @@ export default function HybridLiquidGlassStatsScreen() {
             fontSize: 12,
             color: 'rgba(255,255,255,0.7)',
             marginLeft: 20,
+            fontFamily: fonts.comfortaa.medium,
           }}
         >
           More

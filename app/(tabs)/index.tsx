@@ -1,41 +1,72 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useState } from 'react'
-import { StatusBar, Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useCallback, useMemo, useState } from 'react'
+import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import AlarmSettings from '../../src/components/AlarmSettings'
 import ScrollPicker from '../../src/components/ScrollPicker'
 import SnoozeOptions from '../../src/components/SnoozeOptions'
 import SoundSelectionPage from '../../src/components/SoundSelectionPage'
+import { fonts } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
+import { useAlarmScheduler } from '../../src/hooks/useAlarmScheduler'
 import { getDarkerShade } from '../../src/utils/color'
+import { formatHHmm } from '../../src/utils/time'
+
+const TAB_BAR_HEIGHT = 90
 
 export default function HomeScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
+  const insets = useSafeAreaInsets()
+  const bottomPadding = useMemo(
+    () => insets.bottom + TAB_BAR_HEIGHT + 12,
+    [insets.bottom],
+  )
 
-  const [selectedHour, setSelectedHour] = useState(19)
-  const [selectedMinute, setSelectedMinute] = useState(30)
+  const [selectedHour, setSelectedHour] = useState(() => new Date().getHours())
+  const [selectedMinute, setSelectedMinute] = useState(() =>
+    new Date().getMinutes(),
+  )
   const [currentPage, setCurrentPage] = useState<'main' | 'sound' | 'snooze'>(
     'main',
   )
+  const { scheduleAlarm, scheduledAt } = useAlarmScheduler()
 
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    i.toString().padStart(2, '0'),
+  const hours = useMemo(
+    () => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')),
+    [],
   )
-  const minutes = Array.from({ length: 60 }, (_, i) =>
-    i.toString().padStart(2, '0'),
+  const minutes = useMemo(
+    () => Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')),
+    [],
   )
 
-  const getBackgroundColors = useCallback(() => {
+  const scheduledTimeLabel = useMemo(() => {
+    return scheduledAt ? formatHHmm(scheduledAt) : null
+  }, [scheduledAt])
+
+  const onPressSleep = useCallback(async () => {
+    try {
+      const target = await scheduleAlarm(selectedHour, selectedMinute)
+      Alert.alert(
+        'Sleep alarm set',
+        `Playback scheduled for ${formatHHmm(target)}.`,
+      )
+    } catch (error) {
+      console.error('Failed to schedule alarm', error)
+      Alert.alert('Failed to set Sleep alarm', 'Please try again.')
+    }
+  }, [scheduleAlarm, selectedHour, selectedMinute])
+
+  const backgroundColors = useMemo(() => {
     if (themeMode === 'color') {
       return [themeColor, getDarkerShade(themeColor), '#000000'] as const
-    } else {
-      return [...gradientColors, '#000000'] as unknown as [
-        string,
-        string,
-        ...string[],
-      ]
     }
-  }, [themeMode, themeColor, gradientColors])
+    return [...gradientColors, '#000000'] as unknown as [
+      string,
+      string,
+      ...string[],
+    ]
+  }, [gradientColors, themeColor, themeMode])
 
   // Navigation pages will handle their own state internally
   if (currentPage === 'sound') {
@@ -48,57 +79,90 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={getBackgroundColors()}
-      style={{ flex: 1, padding: 10 }}
+      colors={backgroundColors}
+      style={{ flex: 1, padding: 10, paddingBottom: bottomPadding }}
       locations={themeMode === 'color' ? [0, 0.5, 1] : undefined}
     >
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <StatusBar barStyle="light-content" />
 
         {/* Header */}
         <View className="px-6">
-          <Text className="font-comfortaa font-bold text-2xl">StepUp</Text>
+          <Text
+            className="text-accent text-2xl"
+            style={{ fontFamily: fonts.comfortaa.bold }}
+          >
+            StepUp
+          </Text>
         </View>
 
         {/* Content Container */}
-        <View className="flex-1 justify-between">
+        <View className="flex-1">
           {/* Time Picker Section */}
-          <View className="flex-1 justify-center">
-            <View className="h-[300px] flex flex-row items-center justify-center px-6">
-              <View className="flex-1 max-w-[120px]">
+          <View className="flex-1 justify-center items-center px-6">
+            <View className="relative h-[240px] w-full flex flex-row items-center justify-center">
+              {/* Glass overlay around selected row */}
+              <View
+                pointerEvents="none"
+                className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-[80px] rounded-[22px] border border-white/25 bg-white/10"
+              />
+              <View className="flex-1 max-w-[140px]">
                 <ScrollPicker
                   items={hours}
                   selectedIndex={selectedHour}
                   onValueChange={setSelectedHour}
+                  cyclic
+                  rowHeight={80}
+                  visibleCount={3}
                 />
               </View>
 
               {/* Colon Separator */}
-              <View className="mx-2">
+              <View className="mx-1">
                 <Text
-                  style={{
-                    fontSize: 50,
-                    color: '#ffffff',
-                    fontFamily: 'Comfortaa_700Bold',
-                  }}
+                  className="text-white text-6xl"
+                  style={{ fontFamily: fonts.comfortaa.bold }}
                 >
                   :
                 </Text>
               </View>
 
               {/* Minutes Picker */}
-              <View className="flex-1 max-w-[120px]">
+              <View className="flex-1 max-w-[140px]">
                 <ScrollPicker
                   items={minutes}
                   selectedIndex={selectedMinute}
                   onValueChange={setSelectedMinute}
+                  cyclic
+                  rowHeight={80}
+                  visibleCount={3}
                 />
               </View>
             </View>
+            {/* Sleep Button (Swift UI style via glass effect) */}
+            <TouchableOpacity
+              onPress={onPressSleep}
+              className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
+            >
+              <Text
+                className="text-white text-2xl"
+                style={{ fontFamily: fonts.comfortaa.bold }}
+              >
+                Sleep
+              </Text>
+            </TouchableOpacity>
+            {scheduledTimeLabel && (
+              <Text
+                className="mt-2 text-white/85"
+                style={{ fontFamily: fonts.comfortaa.medium }}
+              >
+                Scheduled time: {scheduledTimeLabel}
+              </Text>
+            )}
           </View>
 
           {/* Alarm Settings Section */}
-          <View style={{ marginBottom: 110 }}>
+          <View className="mt-auto">
             <AlarmSettings
               onSoundPress={() => setCurrentPage('sound')}
               onSnoozePress={() => setCurrentPage('snooze')}
