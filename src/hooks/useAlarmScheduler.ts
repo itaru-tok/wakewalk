@@ -1,4 +1,4 @@
-import { Audio } from 'expo-av'
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAlarmSettings } from '../context/AlarmSettingsContext'
@@ -14,6 +14,21 @@ export function useAlarmScheduler() {
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
   const { ringDurationMinutes } = useAlarmSettings()
   const autoStopDurationMs = Math.max(0, Math.round(ringDurationMinutes * 60_000))
+  const configureAudioMode = useCallback(async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: false,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+        playThroughEarpieceAndroid: false,
+      })
+    } catch (error) {
+      console.error('Failed to configure audio mode', error)
+    }
+  }, [])
 
   const clearScheduledAlarm = useCallback(() => {
     if (!alarmTimeoutRef.current) return
@@ -43,20 +58,14 @@ export function useAlarmScheduler() {
   }, [clearPlaybackTimeout])
 
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    }).catch(() => {})
+    configureAudioMode().catch(() => {})
 
     return () => {
       clearScheduledAlarm()
       stopCurrentSound().catch(() => {})
       setScheduledAt(null)
     }
-  }, [clearScheduledAlarm, stopCurrentSound])
+  }, [clearScheduledAlarm, configureAudioMode, stopCurrentSound])
 
   const scheduleAlarm = useCallback(
     async (selectedHour: number, selectedMinute: number): Promise<Date> => {
@@ -74,6 +83,7 @@ export function useAlarmScheduler() {
 
       const startPlayback = async () => {
         try {
+          await configureAudioMode()
           const { sound } = await Audio.Sound.createAsync(DEFAULT_ALARM_SOUND, {
             shouldPlay: true,
             isLooping: true,
@@ -122,6 +132,7 @@ export function useAlarmScheduler() {
       autoStopDurationMs,
       clearPlaybackTimeout,
       clearScheduledAlarm,
+      configureAudioMode,
       stopCurrentSound,
     ],
   )
