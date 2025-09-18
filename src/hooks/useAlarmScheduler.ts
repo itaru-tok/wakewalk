@@ -1,9 +1,9 @@
 import { Audio } from 'expo-av'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAlarmSettings } from '../context/AlarmSettingsContext'
 
 const DEFAULT_ALARM_SOUND = require('../../assets/sound/chiangmai_bird.m4a')
-const AUTO_STOP_DURATION_MS = 30_000
 
 export function useAlarmScheduler() {
   const alarmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -12,6 +12,8 @@ export function useAlarmScheduler() {
   )
   const soundRef = useRef<Audio.Sound | null>(null)
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
+  const { ringDurationMinutes } = useAlarmSettings()
+  const autoStopDurationMs = Math.max(0, Math.round(ringDurationMinutes * 60_000))
 
   const clearScheduledAlarm = useCallback(() => {
     if (!alarmTimeoutRef.current) return
@@ -81,10 +83,14 @@ export function useAlarmScheduler() {
           soundRef.current = sound
           clearPlaybackTimeout()
 
-          stopPlaybackTimeoutRef.current = setTimeout(() => {
-            stopCurrentSound().catch(() => {})
-            setScheduledAt(null)
-          }, AUTO_STOP_DURATION_MS)
+          if (autoStopDurationMs > 0) {
+            stopPlaybackTimeoutRef.current = setTimeout(() => {
+              stopCurrentSound().catch(() => {})
+              setScheduledAt(null)
+            }, autoStopDurationMs)
+          } else {
+            stopPlaybackTimeoutRef.current = null
+          }
           setScheduledAt(null)
         } catch (error) {
           console.error('Failed to start alarm playback', error)
@@ -112,7 +118,12 @@ export function useAlarmScheduler() {
 
       return target
     },
-    [clearPlaybackTimeout, clearScheduledAlarm, stopCurrentSound],
+    [
+      autoStopDurationMs,
+      clearPlaybackTimeout,
+      clearScheduledAlarm,
+      stopCurrentSound,
+    ],
   )
 
   return { scheduleAlarm, scheduledAt }

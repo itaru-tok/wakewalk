@@ -1,14 +1,17 @@
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { colors } from '../../src/constants/theme'
+import { AlarmSettingsProvider } from '../../src/context/AlarmSettingsContext'
 import { ThemeProvider, useTheme } from '../../src/context/ThemeContext'
 
 export default function TabLayout() {
   return (
     <ThemeProvider>
-      <SafeAreaProvider>
-        <Tabs />
-      </SafeAreaProvider>
+      <AlarmSettingsProvider>
+        <SafeAreaProvider>
+          <Tabs />
+        </SafeAreaProvider>
+      </AlarmSettingsProvider>
     </ThemeProvider>
   )
 }

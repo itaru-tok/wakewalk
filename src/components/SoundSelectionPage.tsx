@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { useAlarmSettings } from '../context/AlarmSettingsContext'
 
 interface SoundSelectionPageProps {
   onBack: () => void
@@ -49,10 +50,13 @@ export default function SoundSelectionPage({
   onBack,
 }: SoundSelectionPageProps) {
   const [selectedSound, setSelectedSound] = useState('chiangmai')
-  const [ringDuration, _setRingDuration] = useState(3)
   const [showAllImported, setShowAllImported] = useState(false)
-
-  const _durations = [1, 3, 5, 10, 15, 30]
+  const [isDurationExpanded, setIsDurationExpanded] = useState(false)
+  const {
+    ringDurationMinutes,
+    setRingDurationMinutes,
+    ringDurationOptions,
+  } = useAlarmSettings()
 
   return (
     <View className="flex-1 bg-black">
@@ -75,23 +79,52 @@ export default function SoundSelectionPage({
           <View className="px-4 py-4 border-b border-gray-800">
             <TouchableOpacity
               className="flex-row justify-between items-center"
-              onPress={() => {
-                // Open duration picker
-              }}
+              onPress={() => setIsDurationExpanded((value) => !value)}
             >
               <Text className="text-white text-lg font-comfortaa">
                 Ring Duration
               </Text>
               <View className="flex-row items-center">
                 <Text className="text-gray-400 mr-2 font-comfortaa">
-                  {ringDuration} minutes
+                  {ringDurationMinutes} minutes
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <Ionicons
+                  name={isDurationExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color="#9CA3AF"
+                />
               </View>
             </TouchableOpacity>
             <Text className="text-gray-500 text-sm mt-2 font-comfortaa">
-              Your sound will loop for {ringDuration} minutes.
+              Your sound will loop for {ringDurationMinutes} minutes.
             </Text>
+            {isDurationExpanded && (
+              <View className="mt-4 bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
+                {ringDurationOptions.map((duration, index) => (
+                  <TouchableOpacity
+                    key={duration}
+                    className={`flex-row justify-between items-center p-4 ${
+                      index > 0 ? 'border-t border-gray-800' : ''
+                    }`}
+                    onPress={() => {
+                      setRingDurationMinutes(duration)
+                      setIsDurationExpanded(false)
+                    }}
+                  >
+                    <Text className="text-white font-comfortaa">
+                      {duration} minutes
+                    </Text>
+                    {ringDurationMinutes === duration && (
+                      <Ionicons
+                        name="checkmark"
+                        size={20}
+                        color="#06B6D4"
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Music Library Section */}
