@@ -11,8 +11,21 @@ dist/
 web-build/
 build/
 
-# Native projects (if prebuild/ejected)
-ios/
+# iOS build artifacts
+ios/Pods/
+ios/build/
+ios/stepupapp.xcworkspace/xcuserdata/
+ios/stepupapp.xcodeproj/project.xcworkspace/xcuserdata/
+ios/stepupapp.xcodeproj/xcuserdata/
+ios/DerivedData/
+
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+
+# Native projects
+# Keep iOS sources under version control; Android is ignored because we only target iOS.
 android/
 
 # OS / Editor
