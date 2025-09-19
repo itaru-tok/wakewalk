@@ -29,7 +29,7 @@ export default function AlarmSettings({
 
   // All state managed internally
   const [snoozeEnabled, setSnoozeEnabled] = useState(false)
-  const [vibrateEnabled, setVibrateEnabled] = useState(true)
+  const { vibrationEnabled, setVibrationEnabled } = useAlarmSettings()
   const [snoozeDuration] = useState(9)
   const [snoozeRepeatCount] = useState(3)
   const { selectedSoundId } = useAlarmSettings()
@@ -142,12 +142,12 @@ export default function AlarmSettings({
                 Vibration
               </Text>
               <Switch
-                value={vibrateEnabled}
+                value={vibrationEnabled}
                 onValueChange={(value) =>
-                  handleSwitchToggle(setVibrateEnabled, value)
+                  setVibrationEnabled(value)
                 }
                 trackColor={{ false: '#374151', true: adjustedColor }}
-                thumbColor={vibrateEnabled ? '#ffffff' : '#9CA3AF'}
+                thumbColor={vibrationEnabled ? '#ffffff' : '#9CA3AF'}
                 ios_backgroundColor="#374151"
               />
             </View>

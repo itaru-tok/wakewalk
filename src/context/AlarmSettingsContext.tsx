@@ -9,6 +9,7 @@ import {
 const DEFAULT_RING_DURATION_MINUTES = 3
 const RING_DURATION_OPTIONS_MINUTES = [1, 3, 5, 10, 15, 30] as const
 export const DEFAULT_SOUND_ID = 'chiangmai'
+const DEFAULT_VIBRATION_ENABLED = true
 
 export const ALARM_SOUND_IDS = [DEFAULT_SOUND_ID] as const
 
@@ -18,6 +19,8 @@ interface AlarmSettingsContextValue {
   ringDurationOptions: readonly number[]
   selectedSoundId: string
   setSelectedSoundId: (id: string) => void
+  vibrationEnabled: boolean
+  setVibrationEnabled: (enabled: boolean) => void
 }
 
 const AlarmSettingsContext = createContext<AlarmSettingsContextValue | null>(
@@ -31,6 +34,9 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
   const [selectedSoundId, setSelectedSoundId] = useState<string>(
     DEFAULT_SOUND_ID,
   )
+  const [vibrationEnabled, setVibrationEnabled] = useState(
+    DEFAULT_VIBRATION_ENABLED,
+  )
 
   const value = useMemo(
     () => ({
@@ -39,8 +45,10 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
       ringDurationOptions: RING_DURATION_OPTIONS_MINUTES,
       selectedSoundId,
       setSelectedSoundId,
+      vibrationEnabled,
+      setVibrationEnabled,
     }),
-    [ringDurationMinutes, selectedSoundId],
+    [ringDurationMinutes, selectedSoundId, vibrationEnabled],
   )
 
   return (

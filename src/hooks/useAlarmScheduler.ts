@@ -29,7 +29,8 @@ const IOS_NOTIFICATION_SOUND_MAP: Record<string, string> = {
 }
 
 export function useAlarmScheduler() {
-  const { ringDurationMinutes, selectedSoundId } = useAlarmSettings()
+  const { ringDurationMinutes, selectedSoundId, vibrationEnabled } =
+    useAlarmSettings()
 
   const [status, setStatus] = useState<AlarmStatus>('idle')
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
@@ -103,14 +104,18 @@ export function useAlarmScheduler() {
           : { date: target }
 
       try {
+        const notificationContent: Notifications.NotificationContent = {
+          title: 'Alarm',
+          body: 'Time to wake up!',
+          categoryIdentifier: ALARM_CATEGORY,
+          data: { scheduledAt: target.toISOString() },
+        }
+
+        const notificationSound = vibrationEnabled ? 'default' : null
+        notificationContent.sound = notificationSound
+
         const id = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Alarm',
-            body: 'Time to wake up!',
-            sound: Platform.OS === 'ios' ? iosNotificationSound : 'alarm-loop',
-            categoryIdentifier: ALARM_CATEGORY,
-            data: { scheduledAt: target.toISOString() },
-          },
+          content: notificationContent,
           trigger,
         })
         scheduledNotificationIdRef.current = id
@@ -119,7 +124,12 @@ export function useAlarmScheduler() {
       }
 
       if (Platform.OS === 'ios') {
-        startNativeAlarm(target, soundFileName, ringDurationMinutes)
+        startNativeAlarm(
+          target,
+          soundFileName,
+          ringDurationMinutes,
+          vibrationEnabled,
+        )
       } else {
         console.warn(
           'Native alarm playback is only supported on iOS. Scheduled notification only.',
@@ -136,6 +146,7 @@ export function useAlarmScheduler() {
       soundFileName,
       requestNotificationPermission,
       stopAlarm,
+      vibrationEnabled,
     ],
   )
 
@@ -145,14 +156,18 @@ export function useAlarmScheduler() {
     const triggeredSub = alarmEventEmitter.addListener(
       'AlarmTriggered',
       async () => {
-        await cancelScheduledNotification()
+        await cancelScheduledNotification().catch(() => {})
         setScheduledAt(null)
         setStatus('ringing')
-        try {
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success,
-          )
-        } catch {}
+        if (vibrationEnabled) {
+          try {
+            await Haptics.notificationAsync(
+              Haptics.NotificationFeedbackType.Success,
+            )
+          } catch (error) {
+            console.warn('Failed to play haptics', error)
+          }
+        }
       },
     )
 
@@ -181,7 +196,7 @@ export function useAlarmScheduler() {
       armedSub.remove()
       errorSub.remove()
     }
-  }, [cancelScheduledNotification])
+  }, [cancelScheduledNotification, vibrationEnabled])
 
   useEffect(() => {
     const receivedSub = Notifications.addNotificationReceivedListener(

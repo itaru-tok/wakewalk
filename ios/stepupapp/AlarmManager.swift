@@ -1,4 +1,5 @@
 import AVFoundation
+import AudioToolbox
 import React
 
 @objc(AlarmManager)
@@ -7,7 +8,9 @@ class AlarmManager: RCTEventEmitter {
   private var alarmPlayer: AVAudioPlayer?
   private var triggerTimer: DispatchSourceTimer?
   private var stopTimer: DispatchSourceTimer?
+  private var vibrationTimer: DispatchSourceTimer?
   private var targetDate: Date?
+  private var shouldVibrate = true
 
   private static let isoFormatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
@@ -23,14 +26,20 @@ class AlarmManager: RCTEventEmitter {
     ["AlarmArmed", "AlarmTriggered", "AlarmStopped", "AlarmError"]
   }
 
-  @objc(start:soundName:duration:)
-  func start(_ iso8601String: NSString, soundName: NSString, duration: NSNumber) {
+  @objc(start:soundName:duration:vibrationEnabled:)
+  func start(
+    _ iso8601String: NSString,
+    soundName: NSString,
+    duration: NSNumber,
+    vibrationEnabled: NSNumber
+  ) {
     guard let date = Self.isoFormatter.date(from: iso8601String as String) else {
       sendEvent(withName: "AlarmError", body: ["message": "Invalid date format"])
       return
     }
 
     targetDate = date
+    shouldVibrate = vibrationEnabled.boolValue
 
     configureAudioSession()
     startSilentLoop()
@@ -43,6 +52,7 @@ class AlarmManager: RCTEventEmitter {
     invalidateTimers()
     stopSilentLoop()
     stopAlarmLoop()
+    stopVibrationLoop()
     sendEvent(withName: "AlarmStopped", body: nil)
   }
 
@@ -88,6 +98,7 @@ class AlarmManager: RCTEventEmitter {
 
   private func startAlarmLoop(soundName: String, duration: Double) {
     stopAlarmLoop()
+    stopVibrationLoop()
 
     guard let url = audioURL(for: soundName),
           let player = try? AVAudioPlayer(contentsOf: url) else {
@@ -103,6 +114,9 @@ class AlarmManager: RCTEventEmitter {
     alarmPlayer = player
 
     sendEvent(withName: "AlarmTriggered", body: nil)
+    if shouldVibrate {
+      startVibrationLoop()
+    }
 
     if duration > 0 {
       let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .background))
@@ -120,11 +134,31 @@ class AlarmManager: RCTEventEmitter {
     alarmPlayer = nil
   }
 
+  private func startVibrationLoop() {
+    if vibrationTimer != nil {
+      return
+    }
+
+    let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+    timer.schedule(deadline: .now(), repeating: 1.0)
+    timer.setEventHandler {
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+    }
+    timer.resume()
+    vibrationTimer = timer
+  }
+
+  private func stopVibrationLoop() {
+    vibrationTimer?.cancel()
+    vibrationTimer = nil
+  }
+
   private func invalidateTimers() {
     triggerTimer?.cancel()
     triggerTimer = nil
     stopTimer?.cancel()
     stopTimer = nil
+    stopVibrationLoop()
   }
 
   private func scheduleTrigger(for date: Date, soundName: String, duration: Double) {

@@ -5,7 +5,12 @@ const LINKING_ERROR =
   'AlarmManager native module is not linked. Rebuild the iOS app after adding the native implementation.'
 
 type AlarmManagerModule = {
-  start: (isoString: string, soundName: string, durationSeconds: number) => void
+  start: (
+    isoString: string,
+    soundName: string,
+    durationSeconds: number,
+    vibrationEnabled: boolean,
+  ) => void
   stop: () => void
 }
 
@@ -41,11 +46,17 @@ export function startNativeAlarm(
   target: Date,
   soundFileName: string,
   durationMinutes: number,
+  vibrationEnabled: boolean,
 ) {
   if (!alarmModule) {
     throw new Error(LINKING_ERROR)
   }
-  alarmModule.start(target.toISOString(), soundFileName, durationMinutes * 60)
+  alarmModule.start(
+    target.toISOString(),
+    soundFileName,
+    durationMinutes * 60,
+    vibrationEnabled,
+  )
 }
 
 export function stopNativeAlarm() {
