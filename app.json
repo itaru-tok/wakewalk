@@ -4,7 +4,21 @@
     "slug": "stepup-app",
     "scheme": "stepup-app",
     "userInterfaceStyle": "automatic",
-    "plugins": ["expo-router", "expo-font", "expo-dev-client"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "iosDisplayInForeground": true,
+          "sounds": [
+            "./assets/sound/alarm-loop.m4a",
+            "./assets/sound/chiangmai_bird.m4a"
+          ]
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },
@@ -13,7 +27,12 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
-        "UIBackgroundModes": ["audio", "fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "audio",
+          "fetch",
+          "processing",
+          "remote-notification"
+        ]
       }
     },
     "extra": {
@@ -23,7 +42,8 @@
       }
     },
     "android": {
-      "package": "com.itaruo93o.stepupapp"
+      "package": "com.itaruo93o.stepupapp",
+      "permissions": ["NOTIFICATIONS"]
     }
   }
 }

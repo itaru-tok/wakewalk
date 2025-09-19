@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useCallback, useMemo, useState } from 'react'
 import { Switch, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
+import { useAlarmSettings } from '../context/AlarmSettingsContext'
 import { getColorBrightness } from '../utils/color'
 
 interface AlarmSettingsProps {
@@ -31,7 +32,7 @@ export default function AlarmSettings({
   const [vibrateEnabled, setVibrateEnabled] = useState(true)
   const [snoozeDuration] = useState(9)
   const [snoozeRepeatCount] = useState(3)
-  const [selectedSound] = useState('chiangmai')
+  const { selectedSoundId } = useAlarmSettings()
 
   const primaryAccent = useMemo(() => {
     if (themeMode === 'color') return themeColor
@@ -69,7 +70,7 @@ export default function AlarmSettings({
                 className="flex-row items-center"
               >
                 <Text className="text-gray-400 mr-2 font-comfortaa">
-                  {soundOptions.find((s) => s.id === selectedSound)?.name ||
+                  {soundOptions.find((s) => s.id === selectedSoundId)?.name ||
                     'Apex'}
                 </Text>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />

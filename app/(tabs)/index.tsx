@@ -29,7 +29,7 @@ export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState<'main' | 'sound' | 'snooze'>(
     'main',
   )
-  const { scheduleAlarm, scheduledAt } = useAlarmScheduler()
+  const { scheduleAlarm, scheduledAt, status, stopAlarm } = useAlarmScheduler()
 
   const hours = useMemo(
     () => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')),
@@ -44,18 +44,28 @@ export default function HomeScreen() {
     return scheduledAt ? formatHHmm(scheduledAt) : null
   }, [scheduledAt])
 
-  const onPressSleep = useCallback(async () => {
+  const onPressPrimary = useCallback(async () => {
+    if (status === 'ringing') {
+      try {
+        await stopAlarm()
+      } catch (error) {
+        console.error('Failed to stop alarm', error)
+      }
+      return
+    }
+
     try {
       const target = await scheduleAlarm(selectedHour, selectedMinute)
-      Alert.alert(
-        'Sleep alarm set',
-        `Playback scheduled for ${formatHHmm(target)}.`,
-      )
+      Alert.alert(`Alarm scheduled for ${formatHHmm(target)}.`)
     } catch (error) {
       console.error('Failed to schedule alarm', error)
-      Alert.alert('Failed to set Sleep alarm', 'Please try again.')
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Please try again.'
+      Alert.alert('Failed to arm alarm', message)
     }
-  }, [scheduleAlarm, selectedHour, selectedMinute])
+  }, [scheduleAlarm, selectedHour, selectedMinute, status, stopAlarm])
 
   const backgroundColors = useMemo(() => {
     if (themeMode === 'color') {
@@ -141,14 +151,14 @@ export default function HomeScreen() {
             </View>
             {/* Sleep Button (Swift UI style via glass effect) */}
             <TouchableOpacity
-              onPress={onPressSleep}
+              onPress={onPressPrimary}
               className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
             >
               <Text
                 className="text-white text-2xl"
                 style={{ fontFamily: fonts.comfortaa.bold }}
               >
-                Sleep
+                {status === 'ringing' ? 'Stop' : 'Sleep'}
               </Text>
             </TouchableOpacity>
             {scheduledTimeLabel && (

@@ -49,13 +49,14 @@ const importedSounds = [{ id: 'chiangmai', name: 'chiangmai_bird' }]
 export default function SoundSelectionPage({
   onBack,
 }: SoundSelectionPageProps) {
-  const [selectedSound, setSelectedSound] = useState('chiangmai')
   const [showAllImported, setShowAllImported] = useState(false)
   const [isDurationExpanded, setIsDurationExpanded] = useState(false)
   const {
     ringDurationMinutes,
     setRingDurationMinutes,
     ringDurationOptions,
+    selectedSoundId,
+    setSelectedSoundId,
   } = useAlarmSettings()
 
   return (
@@ -170,12 +171,12 @@ export default function SoundSelectionPage({
                   className={`flex-row justify-between items-center p-4 ${
                     index > 0 ? 'border-t border-gray-800' : ''
                   }`}
-                  onPress={() => setSelectedSound(sound.id)}
+                  onPress={() => setSelectedSoundId(sound.id)}
                 >
                   <Text className="text-white font-comfortaa">
                     {sound.name}
                   </Text>
-                  {selectedSound === sound.id && (
+                  {selectedSoundId === sound.id && (
                     <Ionicons name="checkmark" size={20} color="#06B6D4" />
                   )}
                 </TouchableOpacity>
@@ -204,12 +205,12 @@ export default function SoundSelectionPage({
                   className={`flex-row justify-between items-center px-4 py-3 ${
                     index > 0 ? 'border-t border-gray-800' : ''
                   }`}
-                  onPress={() => setSelectedSound(sound.id)}
+                  onPress={() => setSelectedSoundId(sound.id)}
                 >
                   <Text className="text-white font-comfortaa">
                     {sound.name}
                   </Text>
-                  {selectedSound === sound.id && (
+                  {selectedSoundId === sound.id && (
                     <Ionicons name="checkmark" size={20} color="#06B6D4" />
                   )}
                 </TouchableOpacity>
