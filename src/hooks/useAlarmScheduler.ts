@@ -31,11 +31,19 @@ export function useAlarmScheduler() {
   const [status, setStatus] = useState<AlarmStatus>('idle')
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
   const scheduledNotificationIdRef = useRef<string | null>(null)
+  // True while we intentionally stop/restart the native alarm to apply new settings.
+  const adjustingNativeAlarmRef = useRef(false)
+  const scheduledAtRef = useRef<Date | null>(null)
+  const settingsUpdatePromiseRef = useRef<Promise<void> | null>(null)
 
   const soundFileName = useMemo(
     () => SOUND_FILE_MAP[selectedSoundId] ?? SOUND_FILE_MAP[DEFAULT_SOUND_ID],
     [selectedSoundId],
   )
+
+  useEffect(() => {
+    scheduledAtRef.current = scheduledAt
+  }, [scheduledAt])
 
   const cancelScheduledNotification = useCallback(async () => {
     const id = scheduledNotificationIdRef.current
@@ -74,6 +82,57 @@ export function useAlarmScheduler() {
     }
   }, [])
 
+  const armAlarmForTarget = useCallback(
+    async (target: Date): Promise<Date> => {
+      const trigger: Notifications.NotificationTriggerInput =
+        Platform.OS === 'android'
+          ? { date: target, channelId: ALARM_CHANNEL }
+          : { date: target }
+
+      const notificationContent: Notifications.NotificationContent = {
+        title: 'Alarm',
+        body: 'Time to wake up!',
+        categoryIdentifier: ALARM_CATEGORY,
+        data: { scheduledAt: target.toISOString() },
+      }
+
+      notificationContent.sound = soundEnabled ? 'default' : null
+
+      try {
+        const id = await Notifications.scheduleNotificationAsync({
+          content: notificationContent,
+          trigger,
+        })
+        scheduledNotificationIdRef.current = id
+      } catch (error) {
+        console.error('Failed to schedule alarm notification', error)
+      }
+
+      if (Platform.OS === 'ios') {
+        try {
+          startNativeAlarm(
+            target,
+            soundFileName,
+            ringDurationMinutes,
+            vibrationEnabled,
+            soundEnabled,
+          )
+        } catch (error) {
+          console.error('Failed to start native alarm', error)
+        }
+      } else {
+        console.warn(
+          'Native alarm playback is only supported on iOS. Scheduled notification only.',
+        )
+      }
+
+      setScheduledAt(new Date(target))
+      setStatus('armed')
+      return target
+    },
+    [ringDurationMinutes, soundFileName, vibrationEnabled, soundEnabled],
+  )
+
   const scheduleAlarm = useCallback(
     async (selectedHour: number, selectedMinute: number): Promise<Date> => {
       await stopAlarm()
@@ -87,57 +146,81 @@ export function useAlarmScheduler() {
         target.setDate(target.getDate() + 1)
       }
 
-      const trigger: Notifications.NotificationTriggerInput =
-        Platform.OS === 'android'
-          ? { date: target, channelId: ALARM_CHANNEL }
-          : { date: target }
-
-      try {
-        const notificationContent: Notifications.NotificationContent = {
-          title: 'Alarm',
-          body: 'Time to wake up!',
-          categoryIdentifier: ALARM_CATEGORY,
-          data: { scheduledAt: target.toISOString() },
-        }
-
-        notificationContent.sound = soundEnabled ? 'default' : null
-
-        const id = await Notifications.scheduleNotificationAsync({
-          content: notificationContent,
-          trigger,
-        })
-        scheduledNotificationIdRef.current = id
-      } catch (error) {
-        console.error('Failed to schedule alarm notification', error)
-      }
-
-      if (Platform.OS === 'ios') {
-        startNativeAlarm(
-          target,
-          soundFileName,
-          ringDurationMinutes,
-          vibrationEnabled,
-          soundEnabled,
-        )
-      } else {
-        console.warn(
-          'Native alarm playback is only supported on iOS. Scheduled notification only.',
-        )
-      }
-
-      setScheduledAt(target)
-      setStatus('armed')
-      return target
+      return armAlarmForTarget(target)
     },
-    [
-      ringDurationMinutes,
-      soundFileName,
-      requestNotificationPermission,
-      stopAlarm,
-      vibrationEnabled,
-      soundEnabled,
-    ],
+    [armAlarmForTarget, requestNotificationPermission, stopAlarm],
   )
+
+  useEffect(() => {
+    if (status !== 'armed') {
+      return
+    }
+
+    let isActive = true
+
+    // Queue a restart so the armed alarm picks up new sound/vibration settings.
+    const enqueueUpdate = () => {
+      const previous = settingsUpdatePromiseRef.current ?? Promise.resolve()
+      const next = previous
+        .catch(() => {})
+        .then(async () => {
+          const targetSnapshot = scheduledAtRef.current
+          if (!targetSnapshot) {
+            return
+          }
+          if (targetSnapshot.getTime() <= Date.now()) {
+            return
+          }
+          if (!isActive) {
+            return
+          }
+
+          await cancelScheduledNotification().catch(() => {})
+          if (!isActive) {
+            return
+          }
+
+          if (Platform.OS === 'ios') {
+            // Flag this stop as internal so AlarmStopped does not reset state.
+            adjustingNativeAlarmRef.current = true
+            try {
+              stopNativeAlarm()
+            } catch (error) {
+              console.error(
+                'Failed to stop native alarm before updating settings',
+                error,
+              )
+            }
+          }
+
+          if (!isActive) {
+            if (Platform.OS === 'ios') {
+              adjustingNativeAlarmRef.current = false
+            }
+            return
+          }
+
+          try {
+            await armAlarmForTarget(new Date(targetSnapshot))
+          } catch (error) {
+            console.error('Failed to apply updated alarm settings', error)
+          } finally {
+            if (Platform.OS === 'ios') {
+              adjustingNativeAlarmRef.current = false
+            }
+          }
+        })
+
+      settingsUpdatePromiseRef.current = next
+      next.catch(() => {})
+    }
+
+    enqueueUpdate()
+
+    return () => {
+      isActive = false
+    }
+  }, [armAlarmForTarget, cancelScheduledNotification, status])
 
   useEffect(() => {
     if (Platform.OS !== 'ios') return
@@ -161,6 +244,10 @@ export function useAlarmScheduler() {
     )
 
     const stoppedSub = alarmEventEmitter.addListener('AlarmStopped', () => {
+      // Ignore synthetic stops that happen during setting adjustments.
+      if (adjustingNativeAlarmRef.current) {
+        return
+      }
       cancelScheduledNotification().catch(() => {})
       setStatus('idle')
       setScheduledAt(null)
