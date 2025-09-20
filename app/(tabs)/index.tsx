@@ -16,6 +16,12 @@ import { formatHHmm } from '../../src/utils/time'
 
 const TAB_BAR_HEIGHT = 90
 
+const logError = (...args: Parameters<typeof console.error>) => {
+  if (__DEV__) {
+    console.error(...args)
+  }
+}
+
 export default function HomeScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
   const { snoozeEnabled, snoozeDurationMinutes } = useAlarmSettings()
@@ -59,7 +65,7 @@ export default function HomeScreen() {
       const target = await scheduleAlarm(selectedHour, selectedMinute)
       Alert.alert(`Alarm scheduled for ${formatHHmm(target)}.`)
     } catch (error) {
-      console.error('Failed to schedule alarm', error)
+      logError('Failed to schedule alarm', error)
       const message =
         error instanceof Error && error.message
           ? error.message
@@ -72,7 +78,7 @@ export default function HomeScreen() {
     try {
       await stopAlarm()
     } catch (error) {
-      console.error('Failed to stop alarm', error)
+      logError('Failed to stop alarm', error)
     }
   }, [stopAlarm])
 
@@ -86,7 +92,7 @@ export default function HomeScreen() {
         )
       }
     } catch (error) {
-      console.error('Failed to snooze alarm', error)
+      logError('Failed to snooze alarm', error)
       const message =
         error instanceof Error && error.message
           ? error.message

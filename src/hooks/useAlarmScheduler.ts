@@ -24,6 +24,18 @@ const SOUND_FILE_MAP: Record<string, string> = {
   [DEFAULT_SOUND_ID]: 'chiangmai_bird.m4a',
 }
 
+const logError = (...args: Parameters<typeof console.error>) => {
+  if (__DEV__) {
+    console.error(...args)
+  }
+}
+
+const logWarn = (...args: Parameters<typeof console.warn>) => {
+  if (__DEV__) {
+    console.warn(...args)
+  }
+}
+
 export function useAlarmScheduler() {
   const {
     ringDurationMinutes,
@@ -81,7 +93,7 @@ export function useAlarmScheduler() {
     try {
       await Notifications.cancelScheduledNotificationAsync(id)
     } catch (error) {
-      console.error('Failed to cancel scheduled notification', error)
+      logError('Failed to cancel scheduled notification', error)
     } finally {
       scheduledNotificationIdRef.current = null
     }
@@ -93,7 +105,7 @@ export function useAlarmScheduler() {
       try {
         stopNativeAlarm()
       } catch (error) {
-        console.error('Failed to stop native alarm', error)
+        logError('Failed to stop native alarm', error)
       }
     }
     setScheduledAt(null)
@@ -136,7 +148,7 @@ export function useAlarmScheduler() {
         })
         scheduledNotificationIdRef.current = id
       } catch (error) {
-        console.error('Failed to schedule alarm notification', error)
+        logError('Failed to schedule alarm notification', error)
       }
 
       if (Platform.OS === 'ios') {
@@ -149,10 +161,10 @@ export function useAlarmScheduler() {
             soundEnabled,
           )
         } catch (error) {
-          console.error('Failed to start native alarm', error)
+          logError('Failed to start native alarm', error)
         }
       } else {
-        console.warn(
+        logWarn(
           'Native alarm playback is only supported on iOS. Scheduled notification only.',
         )
       }
@@ -210,7 +222,7 @@ export function useAlarmScheduler() {
       try {
         stopNativeAlarm()
       } catch (error) {
-        console.error('Failed to stop native alarm before snooze', error)
+        logError('Failed to stop native alarm before snooze', error)
       }
     }
 
@@ -222,7 +234,7 @@ export function useAlarmScheduler() {
       await armAlarmForTarget(nextTarget)
       setRemainingSnoozes((prev) => Math.max(prev - 1, 0))
     } catch (error) {
-      console.error('Failed to schedule snoozed alarm', error)
+      logError('Failed to schedule snoozed alarm', error)
       throw error
     } finally {
       if (Platform.OS === 'ios') {
@@ -274,7 +286,7 @@ export function useAlarmScheduler() {
             try {
               stopNativeAlarm()
             } catch (error) {
-              console.error(
+              logError(
                 'Failed to stop native alarm before updating settings',
                 error,
               )
@@ -291,7 +303,7 @@ export function useAlarmScheduler() {
           try {
             await armAlarmForTarget(new Date(targetSnapshot))
           } catch (error) {
-            console.error('Failed to apply updated alarm settings', error)
+            logError('Failed to apply updated alarm settings', error)
           } finally {
             if (Platform.OS === 'ios') {
               adjustingNativeAlarmRef.current = false
@@ -325,7 +337,7 @@ export function useAlarmScheduler() {
               Haptics.NotificationFeedbackType.Success,
             )
           } catch (error) {
-            console.warn('Failed to play haptics', error)
+            logWarn('Failed to play haptics', error)
           }
         }
       },
@@ -350,9 +362,12 @@ export function useAlarmScheduler() {
     })
 
     const errorSub = alarmEventEmitter.addListener('AlarmError', (payload) => {
-      console.error('Alarm error', payload)
+      if (__DEV__) {
+        logError('Alarm error', payload)
+      }
       setStatus('idle')
       setScheduledAt(null)
+      setRemainingSnoozes(0)
     })
 
     return () => {
