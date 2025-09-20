@@ -3,13 +3,14 @@ import { Ionicons } from '@expo/vector-icons'
 // import Slider from '@react-native-community/slider'
 import { useCallback, useMemo, useState } from 'react'
 import { Switch, Text, TouchableOpacity, View } from 'react-native'
-import { useTheme } from '../context/ThemeContext'
 import { useAlarmSettings } from '../context/AlarmSettingsContext'
+import { useTheme } from '../context/ThemeContext'
 import { getColorBrightness } from '../utils/color'
 
 interface AlarmSettingsProps {
   onSoundPress?: () => void
   onSnoozePress?: () => void
+  onDurationPress?: () => void
 }
 
 const soundOptions = [
@@ -24,6 +25,7 @@ const soundOptions = [
 export default function AlarmSettings({
   onSoundPress,
   onSnoozePress,
+  onDurationPress,
 }: AlarmSettingsProps) {
   const { themeMode, themeColor, gradientColors } = useTheme()
 
@@ -35,6 +37,7 @@ export default function AlarmSettings({
     selectedSoundId,
     soundEnabled,
     setSoundEnabled,
+    ringDurationMinutes,
   } = useAlarmSettings()
   const [snoozeDuration] = useState(9)
   const [snoozeRepeatCount] = useState(3)
@@ -60,6 +63,8 @@ export default function AlarmSettings({
     soundOptions.find((s) => s.id === selectedSoundId)?.name ||
     selectedSoundId ||
     'Apex'
+
+  const durationLabel = `${ringDurationMinutes} min`
 
   return (
     <View className="mx-6">
@@ -95,72 +100,11 @@ export default function AlarmSettings({
                   <Text className="text-gray-400 mr-2 font-comfortaa">
                     {selectedSoundName}
                   </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color="#9CA3AF"
-                  />
+                  <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                 </View>
               </TouchableOpacity>
             )}
           </View>
-
-          {/* Critical Alert Slider */}
-          {/* <View className="mb-4">
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-white text-lg font-comfortaa">
-                Critical Alert
-              </Text>
-              <Switch
-                value={criticalAlertEnabled}
-                onValueChange={(value) =>
-                  handleSwitchToggle(setCriticalAlertEnabled, value)
-                }
-                trackColor={{ false: '#374151', true: adjustedColor }}
-                thumbColor={criticalAlertEnabled ? '#ffffff' : '#9CA3AF'}
-                ios_backgroundColor="#374151"
-              />
-            </View>
-            {criticalAlertEnabled && (
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => setCriticalAlertVolume(0)}
-                  className="mr-3"
-                >
-                  <Ionicons
-                    name={
-                      criticalAlertVolume === 0 ? 'volume-mute' : 'volume-low'
-                    }
-                    size={24}
-                    color="#9CA3AF"
-                  />
-                </TouchableOpacity>
-
-                <View className="flex-1">
-                  <Slider
-                    value={criticalAlertVolume}
-                    onValueChange={setCriticalAlertVolume}
-                    minimumValue={0}
-                    maximumValue={1}
-                    minimumTrackTintColor={adjustedColor}
-                    maximumTrackTintColor="#374151"
-                    thumbTintColor="#ffffff"
-                  />
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => setCriticalAlertVolume(1)}
-                  className="ml-3"
-                >
-                  <Ionicons
-                    name="volume-high"
-                    size={24}
-                    color={adjustedColor}
-                  />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View> */}
 
           {/* Vibration Toggle */}
           <View className="mb-2">
@@ -170,14 +114,35 @@ export default function AlarmSettings({
               </Text>
               <Switch
                 value={vibrationEnabled}
-                onValueChange={(value) =>
-                  setVibrationEnabled(value)
-                }
+                onValueChange={(value) => setVibrationEnabled(value)}
                 trackColor={{ false: '#374151', true: adjustedColor }}
                 thumbColor={vibrationEnabled ? '#ffffff' : '#9CA3AF'}
                 ios_backgroundColor="#374151"
               />
             </View>
+          </View>
+
+          {/* Ring Duration */}
+          <View className="mt-4">
+            <TouchableOpacity
+              onPress={onDurationPress}
+              className="flex-row justify-between items-center"
+            >
+              <View className="flex-1">
+                <Text className="text-white text-lg font-comfortaa">
+                  Ring Duration
+                </Text>
+                <Text className="text-gray-400 text-sm mt-1 font-comfortaa">
+                  Sound and vibration stop after {durationLabel}.
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <Text className="text-gray-300 mr-2 font-comfortaa">
+                  {durationLabel}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Snooze Toggle */}

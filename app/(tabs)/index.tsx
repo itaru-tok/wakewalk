@@ -6,6 +6,7 @@ import AlarmSettings from '../../src/components/AlarmSettings'
 import ScrollPicker from '../../src/components/ScrollPicker'
 import SnoozeOptions from '../../src/components/SnoozeOptions'
 import SoundSelectionPage from '../../src/components/SoundSelectionPage'
+import RingDurationPage from '../../src/components/RingDurationPage'
 import { fonts } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
 import { useAlarmScheduler } from '../../src/hooks/useAlarmScheduler'
@@ -26,9 +27,9 @@ export default function HomeScreen() {
   const [selectedMinute, setSelectedMinute] = useState(() =>
     new Date().getMinutes(),
   )
-  const [currentPage, setCurrentPage] = useState<'main' | 'sound' | 'snooze'>(
-    'main',
-  )
+  const [currentPage, setCurrentPage] = useState<
+    'main' | 'sound' | 'snooze' | 'duration'
+  >('main')
   const { scheduleAlarm, scheduledAt, status, stopAlarm } = useAlarmScheduler()
 
   const hours = useMemo(
@@ -81,6 +82,10 @@ export default function HomeScreen() {
   // Navigation pages will handle their own state internally
   if (currentPage === 'sound') {
     return <SoundSelectionPage onBack={() => setCurrentPage('main')} />
+  }
+
+  if (currentPage === 'duration') {
+    return <RingDurationPage onBack={() => setCurrentPage('main')} />
   }
 
   if (currentPage === 'snooze') {
@@ -175,6 +180,7 @@ export default function HomeScreen() {
           <View className="mt-auto">
             <AlarmSettings
               onSoundPress={() => setCurrentPage('sound')}
+              onDurationPress={() => setCurrentPage('duration')}
               onSnoozePress={() => setCurrentPage('snooze')}
             />
           </View>
