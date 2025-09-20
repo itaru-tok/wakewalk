@@ -10,6 +10,7 @@ type AlarmManagerModule = {
     soundName: string,
     durationSeconds: number,
     vibrationEnabled: boolean,
+    soundEnabled: boolean,
   ) => void
   stop: () => void
 }
@@ -47,6 +48,7 @@ export function startNativeAlarm(
   soundFileName: string,
   durationMinutes: number,
   vibrationEnabled: boolean,
+  soundEnabled: boolean,
 ) {
   if (!alarmModule) {
     throw new Error(LINKING_ERROR)
@@ -56,6 +58,7 @@ export function startNativeAlarm(
     soundFileName,
     durationMinutes * 60,
     vibrationEnabled,
+    soundEnabled,
   )
 }
 

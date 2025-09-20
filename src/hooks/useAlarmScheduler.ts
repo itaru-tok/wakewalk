@@ -24,12 +24,8 @@ const SOUND_FILE_MAP: Record<string, string> = {
   [DEFAULT_SOUND_ID]: 'chiangmai_bird.m4a',
 }
 
-const IOS_NOTIFICATION_SOUND_MAP: Record<string, string> = {
-  [DEFAULT_SOUND_ID]: 'chiangmai_bird.m4a',
-}
-
 export function useAlarmScheduler() {
-  const { ringDurationMinutes, selectedSoundId, vibrationEnabled } =
+  const { ringDurationMinutes, selectedSoundId, vibrationEnabled, soundEnabled } =
     useAlarmSettings()
 
   const [status, setStatus] = useState<AlarmStatus>('idle')
@@ -38,13 +34,6 @@ export function useAlarmScheduler() {
 
   const soundFileName = useMemo(
     () => SOUND_FILE_MAP[selectedSoundId] ?? SOUND_FILE_MAP[DEFAULT_SOUND_ID],
-    [selectedSoundId],
-  )
-
-  const iosNotificationSound = useMemo(
-    () =>
-      IOS_NOTIFICATION_SOUND_MAP[selectedSoundId] ??
-      IOS_NOTIFICATION_SOUND_MAP[DEFAULT_SOUND_ID],
     [selectedSoundId],
   )
 
@@ -111,8 +100,7 @@ export function useAlarmScheduler() {
           data: { scheduledAt: target.toISOString() },
         }
 
-        const notificationSound = vibrationEnabled ? 'default' : null
-        notificationContent.sound = notificationSound
+        notificationContent.sound = soundEnabled ? 'default' : null
 
         const id = await Notifications.scheduleNotificationAsync({
           content: notificationContent,
@@ -129,6 +117,7 @@ export function useAlarmScheduler() {
           soundFileName,
           ringDurationMinutes,
           vibrationEnabled,
+          soundEnabled,
         )
       } else {
         console.warn(
@@ -141,12 +130,12 @@ export function useAlarmScheduler() {
       return target
     },
     [
-      iosNotificationSound,
       ringDurationMinutes,
       soundFileName,
       requestNotificationPermission,
       stopAlarm,
       vibrationEnabled,
+      soundEnabled,
     ],
   )
 

@@ -29,10 +29,15 @@ export default function AlarmSettings({
 
   // All state managed internally
   const [snoozeEnabled, setSnoozeEnabled] = useState(false)
-  const { vibrationEnabled, setVibrationEnabled } = useAlarmSettings()
+  const {
+    vibrationEnabled,
+    setVibrationEnabled,
+    selectedSoundId,
+    soundEnabled,
+    setSoundEnabled,
+  } = useAlarmSettings()
   const [snoozeDuration] = useState(9)
   const [snoozeRepeatCount] = useState(3)
-  const { selectedSoundId } = useAlarmSettings()
 
   const primaryAccent = useMemo(() => {
     if (themeMode === 'color') return themeColor
@@ -51,6 +56,11 @@ export default function AlarmSettings({
     [],
   )
 
+  const selectedSoundName =
+    soundOptions.find((s) => s.id === selectedSoundId)?.name ||
+    selectedSoundId ||
+    'Apex'
+
   return (
     <View className="mx-6">
       <View
@@ -63,19 +73,36 @@ export default function AlarmSettings({
         <View className="p-4">
           {/* Sound Section */}
           <View className="mb-2">
-            <View className="flex-row justify-between items-center mb-3">
+            <View className="flex-row justify-between items-center">
               <Text className="text-white text-lg font-comfortaa">Sound</Text>
+              <Switch
+                value={soundEnabled}
+                onValueChange={(value) => setSoundEnabled(value)}
+                trackColor={{ false: '#374151', true: adjustedColor }}
+                thumbColor={soundEnabled ? '#ffffff' : '#9CA3AF'}
+                ios_backgroundColor="#374151"
+              />
+            </View>
+            {soundEnabled && (
               <TouchableOpacity
                 onPress={onSoundPress}
-                className="flex-row items-center"
+                className="flex-row justify-between items-center mt-3"
               >
-                <Text className="text-gray-400 mr-2 font-comfortaa">
-                  {soundOptions.find((s) => s.id === selectedSoundId)?.name ||
-                    'Apex'}
+                <Text className="text-white text-base font-comfortaa">
+                  Sound Type
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                <View className="flex-row items-center">
+                  <Text className="text-gray-400 mr-2 font-comfortaa">
+                    {selectedSoundName}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color="#9CA3AF"
+                  />
+                </View>
               </TouchableOpacity>
-            </View>
+            )}
           </View>
 
           {/* Critical Alert Slider */}

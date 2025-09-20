@@ -11,6 +11,7 @@ class AlarmManager: RCTEventEmitter {
   private var vibrationTimer: DispatchSourceTimer?
   private var targetDate: Date?
   private var shouldVibrate = true
+  private var shouldPlaySound = true
 
   private static let isoFormatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
@@ -26,12 +27,13 @@ class AlarmManager: RCTEventEmitter {
     ["AlarmArmed", "AlarmTriggered", "AlarmStopped", "AlarmError"]
   }
 
-  @objc(start:soundName:duration:vibrationEnabled:)
+  @objc(start:soundName:duration:vibrationEnabled:soundEnabled:)
   func start(
     _ iso8601String: NSString,
     soundName: NSString,
     duration: NSNumber,
-    vibrationEnabled: NSNumber
+    vibrationEnabled: NSNumber,
+    soundEnabled: NSNumber
   ) {
     guard let date = Self.isoFormatter.date(from: iso8601String as String) else {
       sendEvent(withName: "AlarmError", body: ["message": "Invalid date format"])
@@ -40,6 +42,7 @@ class AlarmManager: RCTEventEmitter {
 
     targetDate = date
     shouldVibrate = vibrationEnabled.boolValue
+    shouldPlaySound = soundEnabled.boolValue
 
     configureAudioSession()
     startSilentLoop()
@@ -100,25 +103,31 @@ class AlarmManager: RCTEventEmitter {
     stopAlarmLoop()
     stopVibrationLoop()
 
-    guard let url = audioURL(for: soundName),
-          let player = try? AVAudioPlayer(contentsOf: url) else {
-      sendEvent(withName: "AlarmError", body: ["message": "Missing alarm sound"])
-      stop()
-      return
+    var encounteredMissingSound = false
+
+    if shouldPlaySound {
+      if let url = audioURL(for: soundName),
+         let player = try? AVAudioPlayer(contentsOf: url) {
+        player.numberOfLoops = -1
+        player.volume = 1.0
+        player.prepareToPlay()
+        player.play()
+        alarmPlayer = player
+      } else {
+        encounteredMissingSound = true
+        sendEvent(withName: "AlarmError", body: ["message": "Missing alarm sound"])
+      }
     }
 
-    player.numberOfLoops = -1
-    player.volume = 1.0
-    player.prepareToPlay()
-    player.play()
-    alarmPlayer = player
-
     sendEvent(withName: "AlarmTriggered", body: nil)
+
     if shouldVibrate {
       startVibrationLoop()
     }
 
-    if duration > 0 {
+    let shouldStopImmediately = encounteredMissingSound && !shouldVibrate
+
+    if duration > 0 && !shouldStopImmediately {
       let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .background))
       timer.schedule(deadline: .now() + duration)
       timer.setEventHandler { [weak self] in
@@ -126,6 +135,10 @@ class AlarmManager: RCTEventEmitter {
       }
       timer.resume()
       stopTimer = timer
+    }
+
+    if shouldStopImmediately {
+      stop()
     }
   }
 

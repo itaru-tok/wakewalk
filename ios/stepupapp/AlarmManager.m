@@ -7,6 +7,7 @@ RCT_EXTERN_METHOD(
   soundName:(NSString *)soundName
   duration:(nonnull NSNumber *)duration
   vibrationEnabled:(nonnull NSNumber *)vibrationEnabled
+  soundEnabled:(nonnull NSNumber *)soundEnabled
 )
 RCT_EXTERN_METHOD(stop)
 @end
