@@ -25,8 +25,15 @@ const SOUND_FILE_MAP: Record<string, string> = {
 }
 
 export function useAlarmScheduler() {
-  const { ringDurationMinutes, selectedSoundId, vibrationEnabled, soundEnabled } =
-    useAlarmSettings()
+  const {
+    ringDurationMinutes,
+    selectedSoundId,
+    vibrationEnabled,
+    soundEnabled,
+    snoozeEnabled,
+    snoozeDurationMinutes,
+    snoozeRepeatCount,
+  } = useAlarmSettings()
 
   const [status, setStatus] = useState<AlarmStatus>('idle')
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
@@ -35,15 +42,38 @@ export function useAlarmScheduler() {
   const adjustingNativeAlarmRef = useRef(false)
   const scheduledAtRef = useRef<Date | null>(null)
   const settingsUpdatePromiseRef = useRef<Promise<void> | null>(null)
+  const [remainingSnoozes, setRemainingSnoozes] = useState(0)
+  const remainingSnoozesRef = useRef(0)
 
   const soundFileName = useMemo(
     () => SOUND_FILE_MAP[selectedSoundId] ?? SOUND_FILE_MAP[DEFAULT_SOUND_ID],
     [selectedSoundId],
-  )
+)
 
   useEffect(() => {
     scheduledAtRef.current = scheduledAt
   }, [scheduledAt])
+
+  useEffect(() => {
+    remainingSnoozesRef.current = remainingSnoozes
+  }, [remainingSnoozes])
+
+  useEffect(() => {
+    if (!snoozeEnabled) {
+      setRemainingSnoozes(0)
+      return
+    }
+
+    setRemainingSnoozes((prev) => {
+      if (prev === 0) {
+        return snoozeRepeatCount
+      }
+      if (prev > snoozeRepeatCount) {
+        return snoozeRepeatCount
+      }
+      return prev
+    })
+  }, [snoozeEnabled, snoozeRepeatCount])
 
   const cancelScheduledNotification = useCallback(async () => {
     const id = scheduledNotificationIdRef.current
@@ -68,6 +98,7 @@ export function useAlarmScheduler() {
     }
     setScheduledAt(null)
     setStatus('idle')
+    setRemainingSnoozes(0)
   }, [cancelScheduledNotification])
 
   const requestNotificationPermission = useCallback(async () => {
@@ -146,10 +177,67 @@ export function useAlarmScheduler() {
         target.setDate(target.getDate() + 1)
       }
 
-      return armAlarmForTarget(target)
+      const armedAt = await armAlarmForTarget(target)
+      setRemainingSnoozes(snoozeEnabled ? snoozeRepeatCount : 0)
+      return armedAt
     },
-    [armAlarmForTarget, requestNotificationPermission, stopAlarm],
-  )
+    [
+      armAlarmForTarget,
+      requestNotificationPermission,
+      snoozeEnabled,
+      snoozeRepeatCount,
+      stopAlarm,
+    ],
+)
+
+  const snoozeAlarm = useCallback(async () => {
+    if (!snoozeEnabled) {
+      return null
+    }
+
+    const remaining = remainingSnoozesRef.current
+    if (remaining <= 0) {
+      setRemainingSnoozes(0)
+      return null
+    }
+
+    const nextTarget = new Date(Date.now() + snoozeDurationMinutes * 60 * 1000)
+
+    await cancelScheduledNotification().catch(() => {})
+
+    if (Platform.OS === 'ios') {
+      adjustingNativeAlarmRef.current = true
+      try {
+        stopNativeAlarm()
+      } catch (error) {
+        console.error('Failed to stop native alarm before snooze', error)
+      }
+    }
+
+    setScheduledAt(null)
+    setStatus('idle')
+
+    try {
+      await ensureNotificationSetup()
+      await armAlarmForTarget(nextTarget)
+      setRemainingSnoozes((prev) => Math.max(prev - 1, 0))
+    } catch (error) {
+      console.error('Failed to schedule snoozed alarm', error)
+      throw error
+    } finally {
+      if (Platform.OS === 'ios') {
+        adjustingNativeAlarmRef.current = false
+      }
+    }
+
+    return nextTarget
+  }, [
+    armAlarmForTarget,
+    cancelScheduledNotification,
+    ensureNotificationSetup,
+    snoozeDurationMinutes,
+    snoozeEnabled,
+  ])
 
   useEffect(() => {
     if (status !== 'armed') {
@@ -251,6 +339,7 @@ export function useAlarmScheduler() {
       cancelScheduledNotification().catch(() => {})
       setStatus('idle')
       setScheduledAt(null)
+      setRemainingSnoozes(0)
     })
 
     const armedSub = alarmEventEmitter.addListener('AlarmArmed', (payload) => {
@@ -318,5 +407,7 @@ export function useAlarmScheduler() {
     scheduledAt,
     scheduleAlarm,
     stopAlarm,
+    snoozeAlarm,
+    remainingSnoozes,
   }
 }

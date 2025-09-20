@@ -1,7 +1,7 @@
 // TODO: use SwiftUI Components from @expo/ui/swift-ui
 import { Ionicons } from '@expo/vector-icons'
 // import Slider from '@react-native-community/slider'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Switch, Text, TouchableOpacity, View } from 'react-native'
 import { useAlarmSettings } from '../context/AlarmSettingsContext'
 import { useTheme } from '../context/ThemeContext'
@@ -30,7 +30,6 @@ export default function AlarmSettings({
   const { themeMode, themeColor, gradientColors } = useTheme()
 
   // All state managed internally
-  const [snoozeEnabled, setSnoozeEnabled] = useState(false)
   const {
     vibrationEnabled,
     setVibrationEnabled,
@@ -38,9 +37,11 @@ export default function AlarmSettings({
     soundEnabled,
     setSoundEnabled,
     ringDurationMinutes,
+    snoozeEnabled,
+    setSnoozeEnabled,
+    snoozeDurationMinutes,
+    snoozeRepeatCount,
   } = useAlarmSettings()
-  const [snoozeDuration] = useState(9)
-  const [snoozeRepeatCount] = useState(3)
 
   const primaryAccent = useMemo(() => {
     if (themeMode === 'color') return themeColor
@@ -51,13 +52,6 @@ export default function AlarmSettings({
     const isDarkColor = getColorBrightness(primaryAccent) < 100
     return isDarkColor ? '#10B981' : primaryAccent
   }, [primaryAccent])
-
-  const handleSwitchToggle = useCallback(
-    (setter: (value: boolean) => void, value: boolean) => {
-      setter(value)
-    },
-    [],
-  )
 
   const selectedSoundName =
     soundOptions.find((s) => s.id === selectedSoundId)?.name ||
@@ -152,7 +146,7 @@ export default function AlarmSettings({
               <Switch
                 value={snoozeEnabled}
                 onValueChange={(value) =>
-                  handleSwitchToggle(setSnoozeEnabled, value)
+                  setSnoozeEnabled(value)
                 }
                 trackColor={{ false: '#374151', true: adjustedColor }}
                 thumbColor={snoozeEnabled ? '#ffffff' : '#9CA3AF'}
@@ -173,7 +167,7 @@ export default function AlarmSettings({
                 </Text>
                 <View className="flex-row items-center">
                   <Text className="text-gray-400 mr-2 font-comfortaa text-sm">
-                    {snoozeDuration} min, {snoozeRepeatCount}x
+                    {snoozeDurationMinutes} min, {snoozeRepeatCount}x
                   </Text>
                   <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                 </View>

@@ -8,22 +8,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { useAlarmSettings } from '../context/AlarmSettingsContext'
 
 interface SnoozeOptionsProps {
   onBack: () => void
 }
 
-const durationOptions = [1, 2, 3, 5, 9, 15, 30]
-const repeatOptions = [1, 2, 3, 4, 5]
+const durationOptions = [1, 3, 5]
+const repeatOptions = [1, 2, 3]
+
+type SnoozeSection = 'duration' | 'repeat' | null
 
 export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
-  const [snoozeDuration, setSnoozeDuration] = useState(9)
-  const [snoozeRepeatCount, setSnoozeRepeatCount] = useState(3)
-  const [expandedSection, setExpandedSection] = useState<
-    'duration' | 'repeat' | null
-  >(null)
+  const {
+    snoozeDurationMinutes,
+    setSnoozeDurationMinutes,
+    snoozeRepeatCount,
+    setSnoozeRepeatCount,
+  } = useAlarmSettings()
+  const [expandedSection, setExpandedSection] = useState<SnoozeSection>(null)
 
-  const toggleSection = (section: 'duration' | 'repeat') => {
+  const toggleSection = (section: Exclude<SnoozeSection, null>) => {
     setExpandedSection(expandedSection === section ? null : section)
   }
 
@@ -56,7 +61,7 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
                 </Text>
                 <View className="flex-row items-center">
                   <Text className="text-cyan-500 mr-2 font-comfortaa">
-                    {snoozeDuration} min
+                    {snoozeDurationMinutes} min
                   </Text>
                   <Ionicons
                     name={
@@ -77,7 +82,7 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
                   <TouchableOpacity
                     key={option}
                     onPress={() => {
-                      setSnoozeDuration(option)
+                      setSnoozeDurationMinutes(option)
                       setExpandedSection(null)
                     }}
                     className={`flex-row justify-between items-center p-4 ${
@@ -87,7 +92,7 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
                     <Text className="text-white font-comfortaa">
                       {option} minutes
                     </Text>
-                    {snoozeDuration === option && (
+                    {snoozeDurationMinutes === option && (
                       <Ionicons name="checkmark" size={20} color="#06B6D4" />
                     )}
                   </TouchableOpacity>
@@ -151,8 +156,8 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
           {/* Info Text */}
           <View className="px-6 mt-8">
             <Text className="text-gray-500 text-sm text-center font-comfortaa">
-              Your alarm will snooze for {snoozeDuration} minutes and repeat up
-              to {snoozeRepeatCount} times.
+              Your alarm will snooze for {snoozeDurationMinutes} minutes and
+              repeat up to {snoozeRepeatCount} times.
             </Text>
           </View>
         </ScrollView>

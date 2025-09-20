@@ -8,6 +8,7 @@ import SnoozeOptions from '../../src/components/SnoozeOptions'
 import SoundSelectionPage from '../../src/components/SoundSelectionPage'
 import RingDurationPage from '../../src/components/RingDurationPage'
 import { fonts } from '../../src/constants/theme'
+import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { useAlarmScheduler } from '../../src/hooks/useAlarmScheduler'
 import { getDarkerShade } from '../../src/utils/color'
@@ -17,6 +18,7 @@ const TAB_BAR_HEIGHT = 90
 
 export default function HomeScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
+  const { snoozeEnabled, snoozeDurationMinutes } = useAlarmSettings()
   const insets = useSafeAreaInsets()
   const bottomPadding = useMemo(
     () => insets.bottom + TAB_BAR_HEIGHT + 12,
@@ -30,7 +32,14 @@ export default function HomeScreen() {
   const [currentPage, setCurrentPage] = useState<
     'main' | 'sound' | 'snooze' | 'duration'
   >('main')
-  const { scheduleAlarm, scheduledAt, status, stopAlarm } = useAlarmScheduler()
+  const {
+    scheduleAlarm,
+    scheduledAt,
+    status,
+    stopAlarm,
+    snoozeAlarm,
+    remainingSnoozes,
+  } = useAlarmScheduler()
 
   const hours = useMemo(
     () => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')),
@@ -45,16 +54,7 @@ export default function HomeScreen() {
     return scheduledAt ? formatHHmm(scheduledAt) : null
   }, [scheduledAt])
 
-  const onPressPrimary = useCallback(async () => {
-    if (status === 'ringing') {
-      try {
-        await stopAlarm()
-      } catch (error) {
-        console.error('Failed to stop alarm', error)
-      }
-      return
-    }
-
+  const handleArmAlarm = useCallback(async () => {
     try {
       const target = await scheduleAlarm(selectedHour, selectedMinute)
       Alert.alert(`Alarm scheduled for ${formatHHmm(target)}.`)
@@ -66,7 +66,34 @@ export default function HomeScreen() {
           : 'Please try again.'
       Alert.alert('Failed to arm alarm', message)
     }
-  }, [scheduleAlarm, selectedHour, selectedMinute, status, stopAlarm])
+  }, [scheduleAlarm, selectedHour, selectedMinute])
+
+  const handleStopAlarm = useCallback(async () => {
+    try {
+      await stopAlarm()
+    } catch (error) {
+      console.error('Failed to stop alarm', error)
+    }
+  }, [stopAlarm])
+
+  const handleSnoozeAlarm = useCallback(async () => {
+    try {
+      const next = await snoozeAlarm()
+      if (next) {
+        Alert.alert(
+          'Snoozed',
+          `Alarm snoozed for ${snoozeDurationMinutes} min. Next ring at around ${formatHHmm(next)}.`,
+        )
+      }
+    } catch (error) {
+      console.error('Failed to snooze alarm', error)
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Please try again.'
+      Alert.alert('Failed to snooze', message)
+    }
+  }, [snoozeAlarm, snoozeDurationMinutes])
 
   const backgroundColors = useMemo(() => {
     if (themeMode === 'color') {
@@ -78,6 +105,13 @@ export default function HomeScreen() {
       ...string[],
     ]
   }, [gradientColors, themeColor, themeMode])
+
+  const isRinging = status === 'ringing'
+  const canSnooze = snoozeEnabled && remainingSnoozes > 0 && isRinging
+  const snoozeButtonLabel =
+    remainingSnoozes === 1
+      ? 'Snooze (1 left)'
+      : `Snooze (${remainingSnoozes} left)`
 
   // Navigation pages will handle their own state internally
   if (currentPage === 'sound') {
@@ -154,18 +188,59 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
-            {/* Sleep Button (Swift UI style via glass effect) */}
-            <TouchableOpacity
-              onPress={onPressPrimary}
-              className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
-            >
-              <Text
-                className="text-white text-2xl"
-                style={{ fontFamily: fonts.comfortaa.bold }}
+            {/* Alarm Actions */}
+            {isRinging ? (
+              canSnooze ? (
+                <View className="mt-4 flex-row space-x-3">
+                  <TouchableOpacity
+                    onPress={handleStopAlarm}
+                    className="flex-1 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
+                  >
+                    <Text
+                      className="text-white text-2xl text-center"
+                      style={{ fontFamily: fonts.comfortaa.bold }}
+                    >
+                      Stop
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSnoozeAlarm}
+                    className="flex-1 px-7 py-3 rounded-2xl border border-white/20 bg-white/5"
+                  >
+                    <Text
+                      className="text-white text-xl text-center"
+                      style={{ fontFamily: fonts.comfortaa.medium }}
+                    >
+                      {snoozeButtonLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleStopAlarm}
+                  className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
+                >
+                  <Text
+                    className="text-white text-2xl text-center"
+                    style={{ fontFamily: fonts.comfortaa.bold }}
+                  >
+                    Stop
+                  </Text>
+                </TouchableOpacity>
+              )
+            ) : (
+              <TouchableOpacity
+                onPress={handleArmAlarm}
+                className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
               >
-                {status === 'ringing' ? 'Stop' : 'Sleep'}
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  className="text-white text-2xl text-center"
+                  style={{ fontFamily: fonts.comfortaa.bold }}
+                >
+                  Sleep
+                </Text>
+              </TouchableOpacity>
+            )}
             {scheduledTimeLabel && (
               <Text
                 className="mt-2 text-white/85"
