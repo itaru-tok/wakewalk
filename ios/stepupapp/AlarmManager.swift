@@ -9,6 +9,9 @@ class AlarmManager: RCTEventEmitter {
   private var triggerTimer: DispatchSourceTimer?
   private var stopTimer: DispatchSourceTimer?
   private var vibrationTimer: DispatchSourceTimer?
+  private var silentLeadTimer: DispatchSourceTimer?
+
+  private let silentLeadTime: TimeInterval = 60
   private var targetDate: Date?
   private var shouldVibrate = true
   private var shouldPlaySound = true
@@ -45,7 +48,6 @@ class AlarmManager: RCTEventEmitter {
     shouldPlaySound = soundEnabled.boolValue
 
     configureAudioSession()
-    startSilentLoop()
     scheduleTrigger(for: date, soundName: soundName as String, duration: duration.doubleValue)
 
     sendEvent(withName: "AlarmArmed", body: ["scheduledAt": iso8601String])
@@ -171,6 +173,8 @@ class AlarmManager: RCTEventEmitter {
     triggerTimer = nil
     stopTimer?.cancel()
     stopTimer = nil
+    silentLeadTimer?.cancel()
+    silentLeadTimer = nil
     stopVibrationLoop()
   }
 
@@ -178,8 +182,30 @@ class AlarmManager: RCTEventEmitter {
     invalidateTimers()
 
     let secondsUntilTrigger = max(0, date.timeIntervalSinceNow)
-    let queue = DispatchQueue.global(qos: .background)
-    let timer = DispatchSource.makeTimerSource(queue: queue)
+
+    if secondsUntilTrigger <= silentLeadTime {
+      DispatchQueue.main.async { [weak self] in
+        guard let self = self else { return }
+        self.startSilentLoop()
+        self.silentLeadTimer = nil
+      }
+    } else {
+      let leadQueue = DispatchQueue.global(qos: .background)
+      let leadTimer = DispatchSource.makeTimerSource(queue: leadQueue)
+      leadTimer.schedule(deadline: .now() + (secondsUntilTrigger - silentLeadTime))
+      leadTimer.setEventHandler { [weak self] in
+        DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          self.startSilentLoop()
+          self.silentLeadTimer = nil
+        }
+      }
+      leadTimer.resume()
+      silentLeadTimer = leadTimer
+    }
+
+    let triggerQueue = DispatchQueue.global(qos: .background)
+    let timer = DispatchSource.makeTimerSource(queue: triggerQueue)
     timer.schedule(deadline: .now() + secondsUntilTrigger)
     timer.setEventHandler { [weak self] in
       DispatchQueue.main.async {
