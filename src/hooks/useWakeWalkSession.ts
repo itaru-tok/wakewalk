@@ -29,7 +29,7 @@ interface StartTrackingParams {
   goalSteps: number
 }
 
-const CHECK_INTERVAL_MS = 15000
+const CHECK_INTERVAL_MS = 10000
 
 export function useWakeWalkSession() {
   const [session, setSession] = useState<WalkSessionState | null>(null)

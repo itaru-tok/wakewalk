@@ -97,6 +97,56 @@ pnpm build:dev:ios    # Build development version for iOS
 pnpm build:preview:ios # Build preview version for iOS
 ```
 
+## 🔧 iOS Native Module Setup (Required for first-time setup)
+
+### Custom Native Module (AlarmManager) Configuration
+
+When setting up the project for the first time, you need to manually add native modules to the Xcode project:
+
+1. **Run prebuild**
+   ```bash
+   npx expo prebuild -p ios
+   ```
+   This copies files from `ios-modules/` to `ios/WakeWalk/`.
+
+2. **Open project in Xcode**
+   ```bash
+   open ios/WakeWalk.xcworkspace
+   ```
+
+3. **Add files to Xcode project**
+
+   Add the following files to Xcode:
+   - `AlarmManager.swift`
+   - `AlarmManager.m`
+   - `silence-loop.wav` (optional)
+
+   **How to add:**
+   - Open `ios/WakeWalk/` folder in Finder
+   - Select the files above
+   - Drag and drop them to Xcode's project navigator (WakeWalk folder on the left)
+   - Check "Add to targets: WakeWalk" in the dialog
+
+4. **Build and run**
+   ```bash
+   pnpm ios
+   ```
+
+### Why is manual Xcode addition necessary?
+
+The `pnpm ios` command uses `xcodebuild` internally to build the app. This tool only includes files that are registered in the `project.pbxproj` file.
+
+```
+How it works:
+ios/WakeWalk/AlarmManager.swift ← File exists physically
+             ↓
+project.pbxproj ← Must be registered here to be built
+             ↓
+WakeWalk.app ← Only registered files are included
+```
+
+Even if files exist in the filesystem, they won't be included in the app unless registered in the Xcode project. This registration is only needed once - after that, `pnpm ios` will work on its own.
+
 ## 🎨 Design System
 
 The app uses a consistent design system with:
