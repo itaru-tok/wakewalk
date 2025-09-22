@@ -1,10 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useFocusEffect } from 'expo-router'
 import { fonts, theme } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
+import { getDailyOutcomeMap } from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
+import { getDateKey } from '../../src/utils/time'
 
 const CELL_SIZE = 14
 const CELL_MARGIN = 3
@@ -15,10 +18,11 @@ interface MonthData {
   weeks: (DayData | null)[][]
 }
 
+type DayStatus = 'success' | 'fail' | 'future' | 'empty'
+
 interface DayData {
   date: Date
-  status: 'perfect' | 'good' | 'missed' | 'future'
-  steps: number
+  status: DayStatus
 }
 
 export default function HybridLiquidGlassStatsScreen() {
@@ -33,24 +37,20 @@ export default function HybridLiquidGlassStatsScreen() {
   const getBackgroundColors = useCallback(() => {
     if (themeMode === 'color') {
       return [themeColor, getDarkerShade(themeColor), '#000000'] as const
-    } else {
-      return [...gradientColors, '#000000'] as unknown as [
-        string,
-        string,
-        ...string[],
-      ]
     }
+    return [...gradientColors, '#000000'] as unknown as [
+      string,
+      string,
+      ...string[],
+    ]
   }, [themeMode, themeColor, gradientColors])
 
-  // PlatformColor is not implemented on Web (react-native-web), so fall back
-
-  const loadHealthData = useCallback(async () => {
-    // Request permissions first
-    // await requestHealthKitPermissions();
-
-    const monthsArray: MonthData[] = []
+  const buildCalendar = useCallback(async () => {
+    const outcomes = await getDailyOutcomeMap()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+
+    const monthsArray: MonthData[] = []
 
     for (let m = 0; m < 12; m++) {
       const monthDate = new Date()
@@ -65,44 +65,40 @@ export default function HybridLiquidGlassStatsScreen() {
       const lastDay = new Date(year, month + 1, 0)
       const totalDays = lastDay.getDate()
 
-      // Create all days for the month
       const allDays: (DayData | null)[] = []
-
-      // Add padding for the first week
       const firstDayOfWeek = firstDay.getDay()
       for (let i = 0; i < firstDayOfWeek; i++) {
         allDays.push(null)
       }
 
-      // Add all days of the month
       for (let day = 1; day <= totalDays; day++) {
         const date = new Date(year, month, day)
         date.setHours(0, 0, 0, 0)
+        const dateKey = getDateKey(date)
+        const record = outcomes[dateKey]
 
-        let status: 'perfect' | 'good' | 'missed' | 'future' = 'future'
-        const steps = 0
-
-        if (date.getTime() <= today.getTime()) {
-          // Simulated data for now
-          const random = Math.random()
-          if (random > 0.7) {
-            status = 'perfect'
-          } else if (random > 0.3) {
-            status = 'good'
+        let status: DayStatus = 'empty'
+        if (date.getTime() > today.getTime()) {
+          status = 'future'
+        } else if (record) {
+          if (record.mode === 'nap') {
+            status = 'empty'
+          } else if (record.outcome === 'success') {
+            status = 'success'
+          } else if (record.outcome === 'fail') {
+            status = 'fail'
           } else {
-            status = 'missed'
+            status = 'empty'
           }
         }
 
-        allDays.push({ date, status, steps })
+        allDays.push({ date, status })
       }
 
-      // Add padding for the last week
       while (allDays.length % 7 !== 0) {
         allDays.push(null)
       }
 
-      // Split into weeks
       for (let i = 0; i < allDays.length; i += 7) {
         weeks.push(allDays.slice(i, i + 7))
       }
@@ -114,9 +110,11 @@ export default function HybridLiquidGlassStatsScreen() {
     shouldScrollToEndRef.current = true
   }, [])
 
-  useEffect(() => {
-    loadHealthData()
-  }, [loadHealthData])
+  useFocusEffect(
+    useCallback(() => {
+      buildCalendar()
+    }, [buildCalendar]),
+  )
 
   const getMonthName = (month: number) => {
     const months = [
@@ -136,24 +134,20 @@ export default function HybridLiquidGlassStatsScreen() {
     return months[month]
   }
 
-  const getDayColor = (status: string) => {
+  const getDayColor = (status: DayStatus) => {
     switch (status) {
-      case 'perfect':
+      case 'success':
         return theme.contribution.colors.perfect
-      case 'good':
-        return theme.contribution.colors.good
-      case 'missed':
+      case 'fail':
         return theme.contribution.colors.missed
       case 'future':
-        return theme.contribution.colors.empty
+      case 'empty':
       default:
         return theme.contribution.colors.empty
     }
   }
 
-  const getDayLabels = () => {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  }
+  const getDayLabels = () => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   return (
     <LinearGradient
@@ -162,10 +156,7 @@ export default function HybridLiquidGlassStatsScreen() {
       locations={themeMode === 'color' ? [0, 0.5, 1] : undefined}
     >
       <SafeAreaView style={{ flex: 1, padding: 30 }} edges={['top', 'bottom']}>
-        {/* Header with Glass Effect */}
-        {/* Main Content with Glass Background */}
         <View style={{ flexDirection: 'row' }}>
-          {/* Fixed week labels */}
           <View style={{ marginRight: 10, marginTop: 30, paddingRight: 5 }}>
             {getDayLabels()
               .filter((_, i) => i % 2 === 1)
@@ -191,7 +182,6 @@ export default function HybridLiquidGlassStatsScreen() {
               ))}
           </View>
 
-          {/* Scrollable months */}
           <ScrollView
             ref={scrollViewRef}
             horizontal
@@ -205,7 +195,7 @@ export default function HybridLiquidGlassStatsScreen() {
             }}
           >
             <View style={{ flexDirection: 'row' }}>
-              {monthsData.map((monthData, _monthIndex) => (
+              {monthsData.map((monthData) => (
                 <View
                   key={`${monthData.year}-${monthData.month}`}
                   style={{ marginRight: CELL_MARGIN }}
@@ -259,53 +249,40 @@ export default function HybridLiquidGlassStatsScreen() {
           </ScrollView>
         </View>
 
-        {/* Legend with Glass Effect */}
-        <Text
-          style={{
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.7)',
-            marginRight: 20,
-            fontFamily: fonts.comfortaa.medium,
-          }}
-        >
-          Less
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 4 }}>
-          <View
-            style={{
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              backgroundColor: theme.contribution.colors.empty,
-              borderRadius: 2,
-            }}
-          />
-          <View
-            style={{
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              backgroundColor: theme.contribution.colors.good,
-              borderRadius: 2,
-            }}
-          />
-          <View
-            style={{
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              backgroundColor: theme.contribution.colors.perfect,
-              borderRadius: 2,
-            }}
-          />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
+            <View
+              style={{
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                backgroundColor: theme.contribution.colors.perfect,
+                borderRadius: 2,
+                marginRight: 6,
+              }}
+            />
+            <Text
+              style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.comfortaa.medium }}
+            >
+              Success
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                backgroundColor: theme.contribution.colors.missed,
+                borderRadius: 2,
+                marginRight: 6,
+              }}
+            />
+            <Text
+              style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.comfortaa.medium }}
+            >
+              Missed
+            </Text>
+          </View>
         </View>
-        <Text
-          style={{
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.7)',
-            marginLeft: 20,
-            fontFamily: fonts.comfortaa.medium,
-          }}
-        >
-          More
-        </Text>
       </SafeAreaView>
     </LinearGradient>
   )

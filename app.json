@@ -27,6 +27,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
+        "NSMotionUsageDescription": "StepUp uses your motion activity to count wake-walk steps.",
         "UIBackgroundModes": [
           "audio",
           "fetch",

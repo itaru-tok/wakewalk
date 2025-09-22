@@ -251,6 +251,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoSensors (15.0.7):
+    - ExpoModulesCore
   - ExpoUI (0.2.0-beta.2):
     - ExpoModulesCore
   - EXUpdatesInterface (2.0.0):
@@ -2308,6 +2310,7 @@ DEPENDENCIES:
   - "ExpoLinking (from `../node_modules/.pnpm/expo-linking@8.0.8_expo@54.0.2_react-native@0.81.4_@babel+core@7.28.4_@types+react@19.1.12_react@19.1.0__react@19.1.0/node_modules/expo-linking/ios`)"
   - "ExpoMeshGradient (from `../node_modules/.pnpm/expo-mesh-gradient@0.4.7_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router_6tk6vtcli3q224kdmy3vapq4ry/node_modules/expo-mesh-gradient/ios`)"
   - "ExpoModulesCore (from `../node_modules/.pnpm/expo-modules-core@3.0.15_react-native@0.81.4_@babel+core@7.28.4_@types+react@19.1.12_react@19.1.0__react@19.1.0/node_modules/expo-modules-core`)"
+  - "ExpoSensors (from `../node_modules/.pnpm/expo-sensors@15.0.7_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router@6.0._4tonxzrw7neduvwt5nklyu34xe/node_modules/expo-sensors/ios`)"
   - "ExpoUI (from `../node_modules/.pnpm/@expo+ui@0.2.0-beta.2_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router@6._gzlqgxdpprfkdv62tjph4zpdaa/node_modules/@expo/ui/ios`)"
   - "EXUpdatesInterface (from `../node_modules/.pnpm/expo-updates-interface@2.0.0_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-ro_qhlkxyaee35yivl2bzt4ryojne/node_modules/expo-updates-interface/ios`)"
   - "FBLazyVector (from `../node_modules/.pnpm/react-native@0.81.4_@babel+core@7.28.4_@types+react@19.1.12_react@19.1.0/node_modules/react-native/Libraries/FBLazyVector`)"
@@ -2432,6 +2435,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/.pnpm/expo-mesh-gradient@0.4.7_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router_6tk6vtcli3q224kdmy3vapq4ry/node_modules/expo-mesh-gradient/ios"
   ExpoModulesCore:
     :path: "../node_modules/.pnpm/expo-modules-core@3.0.15_react-native@0.81.4_@babel+core@7.28.4_@types+react@19.1.12_react@19.1.0__react@19.1.0/node_modules/expo-modules-core"
+  ExpoSensors:
+    :path: "../node_modules/.pnpm/expo-sensors@15.0.7_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router@6.0._4tonxzrw7neduvwt5nklyu34xe/node_modules/expo-sensors/ios"
   ExpoUI:
     :path: "../node_modules/.pnpm/@expo+ui@0.2.0-beta.2_expo@54.0.2_@babel+core@7.28.4_@expo+metro-runtime@6.1.1_expo-router@6._gzlqgxdpprfkdv62tjph4zpdaa/node_modules/@expo/ui/ios"
   EXUpdatesInterface:
@@ -2611,6 +2616,7 @@ SPEC CHECKSUMS:
   ExpoLinking: f051f28e50ea9269ff539317c166adec81d9342d
   ExpoMeshGradient: c732e71dc4ba7323d09a6a6360321bcb2cc249ae
   ExpoModulesCore: 9281d8f1cda9d0c37dbce34c26014212b22eb8c0
+  ExpoSensors: c420123b1c0c2a49e86908055742caaefb1f687e
   ExpoUI: 0f109b0549d1ae2fd955d3b8733b290c5cdeec7e
   EXUpdatesInterface: 5adf50cb41e079c861da6d9b4b954c3db9a50734
   FBLazyVector: 9e0cd874afd81d9a4d36679daca991b58b260d42

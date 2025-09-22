@@ -60,7 +60,7 @@ export function useAlarmScheduler() {
   const soundFileName = useMemo(
     () => SOUND_FILE_MAP[selectedSoundId] ?? SOUND_FILE_MAP[DEFAULT_SOUND_ID],
     [selectedSoundId],
-)
+  )
 
   useEffect(() => {
     scheduledAtRef.current = scheduledAt
@@ -137,18 +137,20 @@ export function useAlarmScheduler() {
         body: 'Time to wake up!',
         categoryIdentifier: ALARM_CATEGORY,
         data: { scheduledAt: target.toISOString() },
+        sound: soundEnabled ? 'default' : null,
       }
 
-      notificationContent.sound = soundEnabled ? 'default' : null
-
+      let scheduled = false
       try {
         const id = await Notifications.scheduleNotificationAsync({
           content: notificationContent,
           trigger,
         })
         scheduledNotificationIdRef.current = id
+        scheduled = true
       } catch (error) {
         logError('Failed to schedule alarm notification', error)
+        throw error
       }
 
       if (Platform.OS === 'ios') {
@@ -162,6 +164,10 @@ export function useAlarmScheduler() {
           )
         } catch (error) {
           logError('Failed to start native alarm', error)
+          if (scheduled) {
+            await cancelScheduledNotification().catch(() => {})
+          }
+          throw error
         }
       } else {
         logWarn(
@@ -173,7 +179,13 @@ export function useAlarmScheduler() {
       setStatus('armed')
       return target
     },
-    [ringDurationMinutes, soundFileName, vibrationEnabled, soundEnabled],
+    [
+      cancelScheduledNotification,
+      ringDurationMinutes,
+      soundEnabled,
+      soundFileName,
+      vibrationEnabled,
+    ],
   )
 
   const scheduleAlarm = useCallback(
@@ -182,12 +194,17 @@ export function useAlarmScheduler() {
       await ensureNotificationSetup()
       await requestNotificationPermission()
 
-      const now = new Date()
-      const target = new Date(now)
-      target.setHours(selectedHour, selectedMinute, 0, 0)
-      if (target <= now) {
-        target.setDate(target.getDate() + 1)
+      const computeTarget = () => {
+        const now = new Date()
+        const target = new Date(now)
+        target.setHours(selectedHour, selectedMinute, 0, 0)
+        if (target <= now) {
+          target.setDate(target.getDate() + 1)
+        }
+        return target
       }
+
+      const target = computeTarget()
 
       const armedAt = await armAlarmForTarget(target)
       setRemainingSnoozes(snoozeEnabled ? snoozeRepeatCount : 0)
@@ -195,12 +212,13 @@ export function useAlarmScheduler() {
     },
     [
       armAlarmForTarget,
+      ensureNotificationSetup,
       requestNotificationPermission,
       snoozeEnabled,
       snoozeRepeatCount,
       stopAlarm,
     ],
-)
+  )
 
   const snoozeAlarm = useCallback(async () => {
     if (!snoozeEnabled) {

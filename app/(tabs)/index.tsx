@@ -1,20 +1,45 @@
+import { Button, Host } from '@expo/ui/swift-ui'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import AlarmSettings from '../../src/components/AlarmSettings'
+import CommonModal from '../../src/components/CommonModal'
+import RingDurationPage from '../../src/components/RingDurationPage'
 import ScrollPicker from '../../src/components/ScrollPicker'
 import SnoozeOptions from '../../src/components/SnoozeOptions'
 import SoundSelectionPage from '../../src/components/SoundSelectionPage'
-import RingDurationPage from '../../src/components/RingDurationPage'
 import { fonts } from '../../src/constants/theme'
 import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { useAlarmScheduler } from '../../src/hooks/useAlarmScheduler'
+import { useWakeWalkSession } from '../../src/hooks/useWakeWalkSession'
+import {
+  overwriteDailyOutcome,
+  type SessionMode,
+  upsertDailyOutcome,
+} from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
-import { formatHHmm } from '../../src/utils/time'
+import { addMinutes, formatHHmm, getDateKey } from '../../src/utils/time'
 
 const TAB_BAR_HEIGHT = 90
+const WALK_GOAL_MINUTES = 60
+const WALK_GOAL_STEPS = 100
+const RULE_VERSION = 1
+
+type ArmPage = 'main' | 'sound' | 'snooze' | 'duration'
+
+type ArmedSession = {
+  dateKey: string
+  target: Date
+  wakeGoal: Date
+  mode: SessionMode
+}
+
+const modeOptions: { label: string; value: SessionMode }[] = [
+  { label: 'Alarm', value: 'alarm' },
+  { label: 'Nap', value: 'nap' },
+]
 
 const logError = (...args: Parameters<typeof console.error>) => {
   if (__DEV__) {
@@ -35,9 +60,17 @@ export default function HomeScreen() {
   const [selectedMinute, setSelectedMinute] = useState(() =>
     new Date().getMinutes(),
   )
-  const [currentPage, setCurrentPage] = useState<
-    'main' | 'sound' | 'snooze' | 'duration'
-  >('main')
+  const [currentPage, setCurrentPage] = useState<ArmPage>('main')
+  const [mode, setMode] = useState<SessionMode>('alarm')
+  const armedSessionRef = useRef<ArmedSession | null>(null)
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean
+    title: string
+    message: string
+    subMessage?: string
+    buttonText?: string
+  }>({ visible: false, title: '', message: '' })
+
   const {
     scheduleAlarm,
     scheduledAt,
@@ -46,6 +79,12 @@ export default function HomeScreen() {
     snoozeAlarm,
     remainingSnoozes,
   } = useAlarmScheduler()
+
+  const {
+    session: walkSession,
+    startTracking,
+    resetSession,
+  } = useWakeWalkSession()
 
   const hours = useMemo(
     () => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')),
@@ -60,10 +99,39 @@ export default function HomeScreen() {
     return scheduledAt ? formatHHmm(scheduledAt) : null
   }, [scheduledAt])
 
-  const handleArmAlarm = useCallback(async () => {
+  const handleArm = useCallback(async () => {
+    resetSession()
     try {
       const target = await scheduleAlarm(selectedHour, selectedMinute)
-      Alert.alert(`Alarm scheduled for ${formatHHmm(target)}.`)
+      const wakeGoal = addMinutes(target, WALK_GOAL_MINUTES)
+      const dateKey = getDateKey(target)
+
+      armedSessionRef.current = {
+        dateKey,
+        target,
+        wakeGoal,
+        mode,
+      }
+
+      if (mode === 'alarm') {
+        await overwriteDailyOutcome(dateKey, {
+          dateKey,
+          mode: 'alarm',
+          alarmTime: target.toISOString(),
+          wakeGoalTime: wakeGoal.toISOString(),
+          goalSteps: WALK_GOAL_STEPS,
+          stopAt: null,
+          achievedAt: null,
+          stepsInWindow: 0,
+          ruleVersion: RULE_VERSION,
+        })
+      }
+
+      const message =
+        mode === 'alarm'
+          ? `Alarm scheduled for ${formatHHmm(target)}.`
+          : `Nap scheduled for ${formatHHmm(target)}.`
+      Alert.alert(message)
     } catch (error) {
       logError('Failed to schedule alarm', error)
       const message =
@@ -72,15 +140,86 @@ export default function HomeScreen() {
           : 'Please try again.'
       Alert.alert('Failed to arm alarm', message)
     }
-  }, [scheduleAlarm, selectedHour, selectedMinute])
+  }, [mode, resetSession, scheduleAlarm, selectedHour, selectedMinute])
 
   const handleStopAlarm = useCallback(async () => {
+    const stopAt = new Date()
+    const armedSession = armedSessionRef.current
+    console.log('[AlarmScreen] stop pressed', { stopAt, armedSession })
+
     try {
       await stopAlarm()
     } catch (error) {
       logError('Failed to stop alarm', error)
     }
-  }, [stopAlarm])
+
+    if (!armedSession || armedSession.mode !== 'alarm') {
+      armedSessionRef.current = null
+      resetSession()
+      return
+    }
+
+    const { dateKey, wakeGoal, target } = armedSession
+
+    if (stopAt >= wakeGoal) {
+      await upsertDailyOutcome({
+        dateKey,
+        patch: {
+          mode: 'alarm',
+          alarmTime: target.toISOString(),
+          wakeGoalTime: wakeGoal.toISOString(),
+          goalSteps: WALK_GOAL_STEPS,
+          stopAt: stopAt.toISOString(),
+          achievedAt: null,
+          stepsInWindow: 0,
+          outcome: 'fail',
+          ruleVersion: RULE_VERSION,
+        },
+      })
+      setModalConfig({
+        visible: true,
+        title: 'Missed today',
+        message: 'Try tomorrow — you got this.',
+        subMessage: `0/${WALK_GOAL_STEPS} steps`,
+      })
+      armedSessionRef.current = null
+      resetSession()
+      return
+    }
+
+    await upsertDailyOutcome({
+      dateKey,
+      patch: {
+        mode: 'alarm',
+        alarmTime: target.toISOString(),
+        wakeGoalTime: wakeGoal.toISOString(),
+        goalSteps: WALK_GOAL_STEPS,
+        stopAt: stopAt.toISOString(),
+        achievedAt: null,
+        stepsInWindow: 0,
+        ruleVersion: RULE_VERSION,
+      },
+    })
+
+    try {
+      await startTracking({
+        dateKey,
+        stopAt,
+        wakeGoal,
+        goalSteps: WALK_GOAL_STEPS,
+      })
+    } catch (error) {
+      logError('Failed to start wake walk tracking', error)
+      setModalConfig({
+        visible: true,
+        title: 'Step tracking unavailable',
+        message: 'Please reopen the app after reinstalling the dev build.',
+      })
+      resetSession()
+    } finally {
+      armedSessionRef.current = null
+    }
+  }, [resetSession, startTracking, stopAlarm])
 
   const handleSnoozeAlarm = useCallback(async () => {
     try {
@@ -118,6 +257,37 @@ export default function HomeScreen() {
     remainingSnoozes === 1
       ? 'Snooze (1 left)'
       : `Snooze (${remainingSnoozes} left)`
+
+  // Watch for walk session changes
+  useEffect(() => {
+    if (!walkSession) return
+
+    if (walkSession.status === 'tracking') {
+      // Show progress modal while tracking
+      const remainingMinutes = Math.max(0, Math.floor(walkSession.remainingMs / 60000))
+      setModalConfig({
+        visible: true,
+        title: 'Wake Walk',
+        message: `Keep moving! ${remainingMinutes} minutes left`,
+        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
+        buttonText: 'Stop Tracking',
+      })
+    } else if (walkSession.status === 'success') {
+      setModalConfig({
+        visible: true,
+        title: 'Commit unlocked!',
+        message: 'You hit your wake walk goal.',
+        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
+      })
+    } else if (walkSession.status === 'fail') {
+      setModalConfig({
+        visible: true,
+        title: 'Missed today',
+        message: 'Try tomorrow — you got this.',
+        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
+      })
+    }
+  }, [walkSession])
 
   // Navigation pages will handle their own state internally
   if (currentPage === 'sound') {
@@ -194,58 +364,101 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
+
+            {!isRinging && (
+              <View className="flex-row bg-white/10 rounded-2xl p-1 mt-6">
+                {modeOptions.map((option) => {
+                  const isActive = mode === option.value
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => setMode(option.value)}
+                      className={`flex-1 px-4 py-2 rounded-xl ${
+                        isActive ? 'bg-white/20' : 'bg-transparent'
+                      }`}
+                    >
+                      <Text
+                        className={`text-center text-base ${
+                          isActive ? 'text-white' : 'text-white/70'
+                        }`}
+                        style={{
+                          fontFamily: isActive
+                            ? fonts.comfortaa.bold
+                            : fonts.comfortaa.medium,
+                        }}
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            )}
+
             {/* Alarm Actions */}
             {isRinging ? (
               canSnooze ? (
                 <View className="mt-4 flex-row space-x-3">
-                  <TouchableOpacity
-                    onPress={handleStopAlarm}
-                    className="flex-1 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
-                  >
-                    <Text
-                      className="text-white text-2xl text-center"
-                      style={{ fontFamily: fonts.comfortaa.bold }}
-                    >
-                      Stop
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleSnoozeAlarm}
-                    className="flex-1 px-7 py-3 rounded-2xl border border-white/20 bg-white/5"
-                  >
-                    <Text
-                      className="text-white text-xl text-center"
-                      style={{ fontFamily: fonts.comfortaa.medium }}
-                    >
-                      {snoozeButtonLabel}
-                    </Text>
-                  </TouchableOpacity>
+                  <View className="flex-1">
+                    <Host>
+                      <Button variant="borderless" onPress={handleStopAlarm}>
+                        <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
+                          <Text
+                            className="text-white text-2xl text-center"
+                            style={{ fontFamily: fonts.comfortaa.bold }}
+                          >
+                            Stop
+                          </Text>
+                        </View>
+                      </Button>
+                    </Host>
+                  </View>
+                  <View className="flex-1">
+                    <Host>
+                      <Button variant="borderless" onPress={handleSnoozeAlarm}>
+                        <View className="px-7 py-3 rounded-2xl border border-white/20 bg-white/5">
+                          <Text
+                            className="text-white text-xl text-center"
+                            style={{ fontFamily: fonts.comfortaa.medium }}
+                          >
+                            {snoozeButtonLabel}
+                          </Text>
+                        </View>
+                      </Button>
+                    </Host>
+                  </View>
                 </View>
               ) : (
-                <TouchableOpacity
-                  onPress={handleStopAlarm}
-                  className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
-                >
-                  <Text
-                    className="text-white text-2xl text-center"
-                    style={{ fontFamily: fonts.comfortaa.bold }}
-                  >
-                    Stop
-                  </Text>
-                </TouchableOpacity>
+                <View className="mt-4">
+                  <Host>
+                    <Button variant="borderless" onPress={handleStopAlarm}>
+                      <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
+                        <Text
+                          className="text-white text-2xl text-center"
+                          style={{ fontFamily: fonts.comfortaa.bold }}
+                        >
+                          Stop
+                        </Text>
+                      </View>
+                    </Button>
+                  </Host>
+                </View>
               )
             ) : (
-              <TouchableOpacity
-                onPress={handleArmAlarm}
-                className="mt-4 px-7 py-3 rounded-2xl border border-white/25 bg-white/10"
-              >
-                <Text
-                  className="text-white text-2xl text-center"
-                  style={{ fontFamily: fonts.comfortaa.bold }}
-                >
-                  Sleep
-                </Text>
-              </TouchableOpacity>
+              <View className="mt-4">
+                <Host>
+                  <Button variant="borderless" onPress={handleArm}>
+                    <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
+                      <Text
+                        className="text-white text-2xl text-center"
+                        style={{ fontFamily: fonts.comfortaa.bold }}
+                      >
+                        {mode === 'alarm' ? 'Sleep' : 'Start Nap'}
+                      </Text>
+                    </View>
+                  </Button>
+                </Host>
+              </View>
             )}
             {scheduledTimeLabel && (
               <Text
@@ -255,6 +468,7 @@ export default function HomeScreen() {
                 Scheduled time: {scheduledTimeLabel}
               </Text>
             )}
+
           </View>
 
           {/* Alarm Settings Section */}
@@ -266,6 +480,27 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+
+        <CommonModal
+          visible={modalConfig.visible}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          subMessage={modalConfig.subMessage}
+          buttonText={modalConfig.buttonText}
+          onDismiss={() => {
+            setModalConfig({ ...modalConfig, visible: false })
+            // Stop tracking or reset session based on status
+            if (walkSession) {
+              if (walkSession.status === 'tracking') {
+                // Stop tracking when user clicks Stop Tracking
+                resetSession()
+              } else if (walkSession.status === 'success' || walkSession.status === 'fail') {
+                // Reset session when dismissing success/fail modals
+                resetSession()
+              }
+            }
+          }}
+        />
       </SafeAreaView>
     </LinearGradient>
   )

@@ -74,5 +74,3 @@ export function useScrollPicker(
     initialScrollOffset: initialOffsetRef.current ?? 0,
   }
 }
-
-
