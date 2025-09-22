@@ -2,7 +2,7 @@
 
 ## Directory Layout
 ```
-step-up/
+wakewalk/
 ├── app/                    # Expo Router app directory
 │   └── (tabs)/            # Tab navigation group
 │       ├── _layout.tsx    # Tab layout configuration

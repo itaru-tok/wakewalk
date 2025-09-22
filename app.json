@@ -27,7 +27,9 @@
       "bundleIdentifier": "com.itaruo93o.wakewalk",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
+        "UNNotificationExtensionCategory": [
+          "ALARM_CATEGORY"
+        ],
         "NSMotionUsageDescription": "WakeWalk uses your motion activity to count wake-walk steps.",
         "UIBackgroundModes": [
           "audio",
@@ -40,12 +42,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5208fc49-a71a-4e46-aec6-2757f3962680"
+        "projectId": "bab41865-be8c-4986-a1a4-fbae81a463e4"
       }
     },
     "android": {
       "package": "com.itaruo93o.wakewalk",
-      "permissions": ["NOTIFICATIONS"]
-    }
+      "permissions": [
+        "NOTIFICATIONS"
+      ]
+    },
+    "owner": "itaruo93o"
   }
 }

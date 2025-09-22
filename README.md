@@ -62,7 +62,7 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd step-up
+   cd wakewalk
    ```
 
 2. **Install dependencies**
