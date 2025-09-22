@@ -317,7 +317,7 @@ export default function HomeScreen() {
             className="text-accent text-2xl"
             style={{ fontFamily: fonts.comfortaa.bold }}
           >
-            StepUp
+            WakeWalk
           </Text>
         </View>
 

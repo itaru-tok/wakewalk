@@ -1,10 +1,10 @@
-# StepUp ⏰
+# WakeWalk ⏰
 
 A React Native health tracking app built with Expo that helps you build consistent wake-up habits by monitoring your step count data.
 
 ## 🎯 Overview
 
-StepUp tracks your wake-up consistency using Apple Health step count data, displaying your progress in a beautiful contribution graph similar to GitHub's activity chart. The app categorizes each day based on your activity:
+WakeWalk tracks your wake-up consistency using Apple Health step count data, displaying your progress in a beautiful contribution graph similar to GitHub's activity chart. The app categorizes each day based on your activity:
 
 - **Perfect** 🟢: ≥15 steps before your target wake time
 - **Good** 🟡: ≥15 steps total for the day (but not before target time)
@@ -170,5 +170,5 @@ This project is licensed under the MIT License.
 
 ---
 
-**StepUp** - Building better mornings, one step at a time! 🌅
+**WakeWalk** - Building better mornings, one step at a time! 🌅
 

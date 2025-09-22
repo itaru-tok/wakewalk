@@ -1,4 +1,4 @@
-# Suggested Commands for StepUp Development
+# Suggested Commands for WakeWalk Development
 
 ## Development Server Commands
 ```bash

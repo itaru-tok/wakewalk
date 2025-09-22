@@ -1,4 +1,4 @@
-# StepUp Project Structure
+# WakeWalk Project Structure
 
 ## Directory Layout
 ```

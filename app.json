@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "stepup-app",
-    "slug": "stepup-app",
-    "scheme": "stepup-app",
+    "name": "WakeWalk",
+    "slug": "wakewalk",
+    "scheme": "wakewalk",
     "userInterfaceStyle": "automatic",
     "plugins": [
       "expo-router",
@@ -17,17 +17,18 @@
             "./assets/sound/chiangmai_bird.m4a"
           ]
         }
-      ]
+      ],
+      "./plugins/withAlarmManager"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "ios": {
-      "bundleIdentifier": "com.itaruo93o.stepup-app",
+      "bundleIdentifier": "com.itaruo93o.wakewalk",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UNNotificationExtensionCategory": ["ALARM_CATEGORY"],
-        "NSMotionUsageDescription": "StepUp uses your motion activity to count wake-walk steps.",
+        "NSMotionUsageDescription": "WakeWalk uses your motion activity to count wake-walk steps.",
         "UIBackgroundModes": [
           "audio",
           "fetch",
@@ -43,7 +44,7 @@
       }
     },
     "android": {
-      "package": "com.itaruo93o.stepupapp",
+      "package": "com.itaruo93o.wakewalk",
       "permissions": ["NOTIFICATIONS"]
     }
   }

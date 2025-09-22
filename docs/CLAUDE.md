@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-StepUp is a React Native health tracking app built with Expo that monitors wake-up habits using step count data from Apple Health (iOS). The app displays a contribution graph showing three states: perfect (≥15 steps before target wake time), good (≥15 steps total for the day), and missed (<15 steps).
+WakeWalk is a React Native health tracking app built with Expo that monitors wake-up habits using step count data from Apple Health (iOS). The app displays a contribution graph showing three states: perfect (≥15 steps before target wake time), good (≥15 steps total for the day), and missed (<15 steps).
 
 The project follows a clean architecture with organized source code under `src/` directory and comprehensive documentation in `docs/`.
 

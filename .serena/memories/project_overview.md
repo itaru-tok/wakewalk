@@ -1,7 +1,7 @@
-# StepUp Project Overview
+# WakeWalk Project Overview
 
 ## Purpose
-StepUp is a React Native health tracking app that monitors wake-up habits using step count data from Apple Health (iOS). The app helps users track their morning routines by monitoring whether they achieve a minimum step count (15 steps) before their target wake time.
+WakeWalk is a React Native health tracking app that monitors wake-up habits using step count data from Apple Health (iOS). The app helps users track their morning routines by monitoring whether they achieve a minimum step count (15 steps) before their target wake time.
 
 ## Tech Stack
 - **Framework**: React Native with Expo SDK 53

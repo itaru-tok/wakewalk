@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const STORAGE_KEY = 'stepup:daily-outcomes'
+const STORAGE_KEY = 'wakewalk:daily-outcomes'
 
 export type OutcomeResult = 'success' | 'fail'
 export type SessionMode = 'alarm' | 'nap'

@@ -1,6 +1,6 @@
 # Task Completion Checklist
 
-When completing any coding task in the StepUp project, ensure you:
+When completing any coding task in the WakeWalk project, ensure you:
 
 ## 1. Code Quality Checks
 ```bash
