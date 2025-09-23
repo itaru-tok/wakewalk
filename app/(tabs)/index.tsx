@@ -22,7 +22,30 @@ import {
 import { getDarkerShade } from '../../src/utils/color'
 import { addMinutes, formatHHmm, getDateKey } from '../../src/utils/time'
 
-const TAB_BAR_HEIGHT = 90
+function ActionButton({
+  label,
+  onPress,
+}: {
+  label: string
+  onPress: () => void
+}) {
+  return (
+    <Host>
+      <Button variant="borderless" onPress={onPress}>
+        <View className="px-14 py-3 rounded-[35px] border border-white/25 bg-white/10">
+          <Text
+            className="text-white text-4xl text-center"
+            style={{ fontFamily: fonts.comfortaa.bold }}
+          >
+            {label}
+          </Text>
+        </View>
+      </Button>
+    </Host>
+  )
+}
+
+const TAB_BAR_HEIGHT = 30
 const WALK_GOAL_MINUTES = 60
 const WALK_GOAL_STEPS = 100
 const RULE_VERSION = 1
@@ -37,7 +60,7 @@ type ArmedSession = {
 }
 
 const modeOptions: { label: string; value: SessionMode }[] = [
-  { label: 'Alarm', value: 'alarm' },
+  { label: 'Sleep', value: 'alarm' },
   { label: 'Nap', value: 'nap' },
 ]
 
@@ -52,7 +75,7 @@ export default function HomeScreen() {
   const { snoozeEnabled, snoozeDurationMinutes } = useAlarmSettings()
   const insets = useSafeAreaInsets()
   const bottomPadding = useMemo(
-    () => insets.bottom + TAB_BAR_HEIGHT + 12,
+    () => insets.bottom + TAB_BAR_HEIGHT,
     [insets.bottom],
   )
 
@@ -87,7 +110,7 @@ export default function HomeScreen() {
   } = useWakeWalkSession()
 
   const hours = useMemo(
-    () => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')),
+    () => Array.from({ length: 24 }, (_, i) => i.toString()),
     [],
   )
   const minutes = useMemo(
@@ -127,10 +150,15 @@ export default function HomeScreen() {
         })
       }
 
+      const infoLine =
+        mode === 'alarm'
+          ? `After it rings, tap Stop to start Wake Walk session.\nWalk 100 steps within 60 minutes to add to your commit graph.`
+          : `Wake Walk session doesn’t start in nap mode.`
+
       const message =
         mode === 'alarm'
-          ? `Alarm scheduled for ${formatHHmm(target)}.`
-          : `Nap scheduled for ${formatHHmm(target)}.`
+          ? `Alarm scheduled for ${formatHHmm(target)}.\n\n${infoLine}`
+          : `Nap scheduled for ${formatHHmm(target)}.\n\n${infoLine}`
       Alert.alert(message)
     } catch (error) {
       logError('Failed to schedule alarm', error)
@@ -264,7 +292,10 @@ export default function HomeScreen() {
 
     if (walkSession.status === 'tracking') {
       // Show progress modal while tracking
-      const remainingMinutes = Math.max(0, Math.floor(walkSession.remainingMs / 60000))
+      const remainingMinutes = Math.max(
+        0,
+        Math.floor(walkSession.remainingMs / 60000),
+      )
       setModalConfig({
         visible: true,
         title: 'Wake Walk',
@@ -275,7 +306,7 @@ export default function HomeScreen() {
     } else if (walkSession.status === 'success') {
       setModalConfig({
         visible: true,
-        title: 'Commit unlocked!',
+        title: 'Committed!',
         message: 'You hit your wake walk goal.',
         subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
       })
@@ -325,25 +356,25 @@ export default function HomeScreen() {
         <View className="flex-1">
           {/* Time Picker Section */}
           <View className="flex-1 justify-center items-center px-6">
-            <View className="relative h-[240px] w-full flex flex-row items-center justify-center">
+            <View className="relative h-auto w-full flex flex-row items-center justify-center">
               {/* Glass overlay around selected row */}
               <View
                 pointerEvents="none"
-                className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-[80px] rounded-[22px] border border-white/25 bg-white/10"
+                className="absolute left-16 right-16 top-1/2 -translate-y-1/2 h-[70px] rounded-[35px] border border-white/25 bg-white/10"
               />
-              <View className="flex-1 max-w-[140px]">
+              <View className="flex-1 max-w-[100px]">
                 <ScrollPicker
                   items={hours}
                   selectedIndex={selectedHour}
                   onValueChange={setSelectedHour}
                   cyclic
-                  rowHeight={80}
+                  rowHeight={70}
                   visibleCount={3}
                 />
               </View>
 
               {/* Colon Separator */}
-              <View className="mx-1">
+              <View className="-mx-2">
                 <Text
                   className="text-white text-6xl"
                   style={{ fontFamily: fonts.comfortaa.bold }}
@@ -353,13 +384,13 @@ export default function HomeScreen() {
               </View>
 
               {/* Minutes Picker */}
-              <View className="flex-1 max-w-[140px]">
+              <View className="flex-1 max-w-[100px]">
                 <ScrollPicker
                   items={minutes}
                   selectedIndex={selectedMinute}
                   onValueChange={setSelectedMinute}
                   cyclic
-                  rowHeight={80}
+                  rowHeight={70}
                   visibleCount={3}
                 />
               </View>
@@ -400,64 +431,26 @@ export default function HomeScreen() {
               canSnooze ? (
                 <View className="mt-4 flex-row space-x-3">
                   <View className="flex-1">
-                    <Host>
-                      <Button variant="borderless" onPress={handleStopAlarm}>
-                        <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
-                          <Text
-                            className="text-white text-2xl text-center"
-                            style={{ fontFamily: fonts.comfortaa.bold }}
-                          >
-                            Stop
-                          </Text>
-                        </View>
-                      </Button>
-                    </Host>
+                    <ActionButton label="Stop" onPress={handleStopAlarm} />
                   </View>
                   <View className="flex-1">
-                    <Host>
-                      <Button variant="borderless" onPress={handleSnoozeAlarm}>
-                        <View className="px-7 py-3 rounded-2xl border border-white/20 bg-white/5">
-                          <Text
-                            className="text-white text-xl text-center"
-                            style={{ fontFamily: fonts.comfortaa.medium }}
-                          >
-                            {snoozeButtonLabel}
-                          </Text>
-                        </View>
-                      </Button>
-                    </Host>
+                    <ActionButton
+                      label={snoozeButtonLabel}
+                      onPress={handleSnoozeAlarm}
+                    />
                   </View>
                 </View>
               ) : (
                 <View className="mt-4">
-                  <Host>
-                    <Button variant="borderless" onPress={handleStopAlarm}>
-                      <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
-                        <Text
-                          className="text-white text-2xl text-center"
-                          style={{ fontFamily: fonts.comfortaa.bold }}
-                        >
-                          Stop
-                        </Text>
-                      </View>
-                    </Button>
-                  </Host>
+                  <ActionButton label="Stop" onPress={handleStopAlarm} />
                 </View>
               )
             ) : (
               <View className="mt-4">
-                <Host>
-                  <Button variant="borderless" onPress={handleArm}>
-                    <View className="px-7 py-3 rounded-2xl border border-white/25 bg-white/10">
-                      <Text
-                        className="text-white text-2xl text-center"
-                        style={{ fontFamily: fonts.comfortaa.bold }}
-                      >
-                        {mode === 'alarm' ? 'Sleep' : 'Start Nap'}
-                      </Text>
-                    </View>
-                  </Button>
-                </Host>
+                <ActionButton
+                  label={mode === 'alarm' ? 'Sleep' : 'Nap'}
+                  onPress={handleArm}
+                />
               </View>
             )}
             {scheduledTimeLabel && (
@@ -468,7 +461,6 @@ export default function HomeScreen() {
                 Scheduled time: {scheduledTimeLabel}
               </Text>
             )}
-
           </View>
 
           {/* Alarm Settings Section */}
@@ -494,7 +486,10 @@ export default function HomeScreen() {
               if (walkSession.status === 'tracking') {
                 // Stop tracking when user clicks Stop Tracking
                 resetSession()
-              } else if (walkSession.status === 'success' || walkSession.status === 'fail') {
+              } else if (
+                walkSession.status === 'success' ||
+                walkSession.status === 'fail'
+              ) {
                 // Reset session when dismissing success/fail modals
                 resetSession()
               }

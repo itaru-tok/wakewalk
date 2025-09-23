@@ -31,6 +31,7 @@ interface StartTrackingParams {
 
 const CHECK_INTERVAL_MS = 10000
 
+// TODO: アラームなる前に起きても、wake walkセッション開始できるようにする
 export function useWakeWalkSession() {
   const [session, setSession] = useState<WalkSessionState | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -79,7 +80,6 @@ export function useWakeWalkSession() {
 
       clearTimer()
       activeRef.current = null
-      setSession(null)
     },
     [clearTimer],
   )

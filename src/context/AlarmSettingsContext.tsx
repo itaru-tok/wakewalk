@@ -7,7 +7,7 @@ import {
 } from 'react'
 
 const DEFAULT_RING_DURATION_MINUTES = 3
-const RING_DURATION_OPTIONS_MINUTES = [1, 3, 5, 10, 15, 30] as const
+const RING_DURATION_OPTIONS_MINUTES = [1, 3, 5] as const
 export const DEFAULT_SOUND_ID = 'chiangmai'
 const DEFAULT_VIBRATION_ENABLED = true
 const DEFAULT_SOUND_ENABLED = true
@@ -43,9 +43,8 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
   const [ringDurationMinutes, setRingDurationMinutes] = useState(
     DEFAULT_RING_DURATION_MINUTES,
   )
-  const [selectedSoundId, setSelectedSoundId] = useState<string>(
-    DEFAULT_SOUND_ID,
-  )
+  const [selectedSoundId, setSelectedSoundId] =
+    useState<string>(DEFAULT_SOUND_ID)
   const [vibrationEnabled, setVibrationEnabled] = useState(
     DEFAULT_VIBRATION_ENABLED,
   )

@@ -61,7 +61,7 @@ export default function AlarmSettings({
   const durationLabel = `${ringDurationMinutes} min`
 
   return (
-    <View className="mx-6">
+    <View className="mx-6 mt-3">
       <View
         style={{
           borderRadius: 20,
@@ -71,7 +71,7 @@ export default function AlarmSettings({
       >
         <View className="p-4">
           {/* Sound Section */}
-          <View className="mb-2">
+          <View>
             <View className="flex-row justify-between items-center">
               <Text className="text-white text-lg font-comfortaa">Sound</Text>
               <Switch
@@ -99,9 +99,10 @@ export default function AlarmSettings({
               </TouchableOpacity>
             )}
           </View>
+          <View className="h-[1px] bg-white/15 my-3" />
 
           {/* Vibration Toggle */}
-          <View className="mb-2">
+          <View>
             <View className="flex-row justify-between items-center">
               <Text className="text-white text-lg font-comfortaa">
                 Vibration
@@ -115,9 +116,10 @@ export default function AlarmSettings({
               />
             </View>
           </View>
+          <View className="h-[1px] bg-white/15 my-3" />
 
           {/* Ring Duration */}
-          <View className="mt-4">
+          <View>
             <TouchableOpacity
               onPress={onDurationPress}
               className="flex-row justify-between items-center"
@@ -138,16 +140,15 @@ export default function AlarmSettings({
               </View>
             </TouchableOpacity>
           </View>
+          <View className="h-[1px] bg-white/15 my-3" />
 
           {/* Snooze Toggle */}
-          <View className="mb-2">
+          <View>
             <View className="flex-row justify-between items-center">
               <Text className="text-white text-lg font-comfortaa">Snooze</Text>
               <Switch
                 value={snoozeEnabled}
-                onValueChange={(value) =>
-                  setSnoozeEnabled(value)
-                }
+                onValueChange={(value) => setSnoozeEnabled(value)}
                 trackColor={{ false: '#374151', true: adjustedColor }}
                 thumbColor={snoozeEnabled ? '#ffffff' : '#9CA3AF'}
                 ios_backgroundColor="#374151"

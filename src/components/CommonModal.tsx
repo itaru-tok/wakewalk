@@ -42,7 +42,7 @@ export default function CommonModal({
           </Text>
           {subMessage && (
             <Text
-              className="text-white/70 text-sm text-center mt-4"
+              className="text-white text-3xl text-center mt-4"
               style={{ fontFamily: fonts.comfortaa.medium }}
             >
               {subMessage}

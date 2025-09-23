@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { useCallback, useRef, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useFocusEffect } from 'expo-router'
 import { fonts, theme } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDailyOutcomeMap } from '../../src/storage/dailyOutcome'
@@ -31,8 +31,6 @@ export default function HybridLiquidGlassStatsScreen() {
   const TAB_BAR_HEIGHT = 90
   const bottomPadding = insets.bottom + TAB_BAR_HEIGHT + 12
   const [monthsData, setMonthsData] = useState<MonthData[]>([])
-  const scrollViewRef = useRef<ScrollView>(null)
-  const shouldScrollToEndRef = useRef(false)
 
   const getBackgroundColors = useCallback(() => {
     if (themeMode === 'color') {
@@ -107,7 +105,6 @@ export default function HybridLiquidGlassStatsScreen() {
     }
 
     setMonthsData(monthsArray)
-    shouldScrollToEndRef.current = true
   }, [])
 
   useFocusEffect(
@@ -155,133 +152,143 @@ export default function HybridLiquidGlassStatsScreen() {
       style={{ flex: 1, paddingBottom: bottomPadding }}
       locations={themeMode === 'color' ? [0, 0.5, 1] : undefined}
     >
-      <SafeAreaView style={{ flex: 1, padding: 30 }} edges={['top', 'bottom']}>
-        <View style={{ flexDirection: 'row' }}>
-          <View style={{ marginRight: 10, marginTop: 30, paddingRight: 5 }}>
-            {getDayLabels()
-              .filter((_, i) => i % 2 === 1)
-              .map((label, index) => (
-                <View
-                  key={`day-label-${label}`}
-                  style={{
-                    height: (CELL_SIZE + CELL_MARGIN) * 2,
-                    justifyContent: 'center',
-                    marginTop: index === 0 ? 0 : -CELL_MARGIN,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: 'rgba(255,255,255,0.7)',
-                      fontFamily: fonts.comfortaa.medium,
-                    }}
-                  >
-                    {label}
-                  </Text>
-                </View>
-              ))}
-          </View>
-
-          <ScrollView
-            ref={scrollViewRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 20 }}
-            style={{ flex: 1 }}
-            onContentSizeChange={() => {
-              if (!shouldScrollToEndRef.current) return
-              shouldScrollToEndRef.current = false
-              scrollViewRef.current?.scrollToEnd({ animated: false })
-            }}
+      <SafeAreaView
+        style={{ flex: 1, paddingHorizontal: 25 }}
+        edges={['top', 'bottom']}
+      >
+        {/* Header */}
+        <View className="mb-6 pt-4">
+          <Text
+            className="text-accent text-2xl"
+            style={{ fontFamily: fonts.comfortaa.bold }}
           >
-            <View style={{ flexDirection: 'row' }}>
-              {monthsData.map((monthData) => (
-                <View
-                  key={`${monthData.year}-${monthData.month}`}
-                  style={{ marginRight: CELL_MARGIN }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: 'rgba(255,255,255,0.7)',
-                      marginBottom: 8,
-                      fontFamily: fonts.comfortaa.medium,
-                    }}
-                  >
-                    {getMonthName(monthData.month)}
-                  </Text>
-
-                  <View style={{ flexDirection: 'row' }}>
-                    {monthData.weeks.map((week, weekIndex) => (
-                      <View
-                        key={`${monthData.year}-${monthData.month}-week-${weekIndex}`}
-                        style={{
-                          marginRight:
-                            weekIndex < monthData.weeks.length - 1
-                              ? CELL_MARGIN
-                              : 0,
-                        }}
-                      >
-                        {week.map((day, dayIndex) => (
-                          <View
-                            key={
-                              day
-                                ? `${day.date.toISOString()}`
-                                : `empty-${monthData.year}-${monthData.month}-${weekIndex}-${dayIndex}`
-                            }
-                            style={{
-                              width: CELL_SIZE,
-                              height: CELL_SIZE,
-                              backgroundColor: day
-                                ? getDayColor(day.status)
-                                : theme.contribution.colors.empty,
-                              borderRadius: 2,
-                              marginBottom: dayIndex < 6 ? CELL_MARGIN : 0,
-                            }}
-                          />
-                        ))}
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
-            </View>
-          </ScrollView>
+            Stats
+          </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
-            <View
-              style={{
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-                backgroundColor: theme.contribution.colors.perfect,
-                borderRadius: 2,
-                marginRight: 6,
-              }}
-            />
-            <Text
-              style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.comfortaa.medium }}
+        <View className="bg-white/10 rounded-2xl p-4">
+          <View className="flex-row">
+            <View className="mr-2.5 mt-7 pr-1">
+              {getDayLabels()
+                .filter((_, i) => i % 2 === 1)
+                .map((label, index) => (
+                  <View
+                    key={`day-label-${label}`}
+                    className="justify-center"
+                    style={{
+                      height: (CELL_SIZE + CELL_MARGIN) * 2,
+                      marginTop: index === 0 ? 0 : -CELL_MARGIN,
+                    }}
+                  >
+                    <Text
+                      className="text-xs text-white/70"
+                      style={{ fontFamily: fonts.comfortaa.medium }}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 20 }}
+              style={{ flex: 1, transform: [{ scaleX: -1 }] }}
             >
-              Success
-            </Text>
+              <View
+                style={{ flexDirection: 'row', transform: [{ scaleX: -1 }] }}
+              >
+                {monthsData.map((monthData) => (
+                  <View
+                    key={`${monthData.year}-${monthData.month}`}
+                    style={{ marginRight: CELL_MARGIN }}
+                  >
+                    <Text
+                      className="text-sm text-white/70 mb-2"
+                      style={{ fontFamily: fonts.comfortaa.medium }}
+                    >
+                      {getMonthName(monthData.month)}
+                    </Text>
+
+                    <View className="flex-row">
+                      {monthData.weeks.slice(0, 5).map((week, weekIndex) => (
+                        <View
+                          key={`${monthData.year}-${monthData.month}-week-${weekIndex}`}
+                          style={{
+                            marginRight: weekIndex < 4 ? CELL_MARGIN : 0,
+                          }}
+                        >
+                          {week.map((day, dayIndex) => (
+                            <View
+                              key={
+                                day
+                                  ? `${day.date.toISOString()}`
+                                  : `empty-${monthData.year}-${monthData.month}-${weekIndex}-${dayIndex}`
+                              }
+                              style={{
+                                width: CELL_SIZE,
+                                height: CELL_SIZE,
+                                backgroundColor: day
+                                  ? getDayColor(day.status)
+                                  : theme.contribution.colors.empty,
+                                borderRadius: 2,
+                                marginBottom: dayIndex < 6 ? CELL_MARGIN : 0,
+                              }}
+                            />
+                          ))}
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View
-              style={{
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-                backgroundColor: theme.contribution.colors.missed,
-                borderRadius: 2,
-                marginRight: 6,
-              }}
-            />
-            <Text
-              style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.comfortaa.medium }}
-            >
-              Missed
-            </Text>
+
+          <View className="flex-row items-center mt-4">
+            <View className="flex-row items-center mr-4">
+              <View
+                className="rounded-sm mr-1.5"
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  backgroundColor: theme.contribution.colors.missed,
+                }}
+              />
+              <Text
+                className="text-white/70"
+                style={{ fontFamily: fonts.comfortaa.medium }}
+              >
+                Missed
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <View
+                className="rounded-sm mr-1.5"
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  backgroundColor: theme.contribution.colors.perfect,
+                }}
+              />
+              <Text
+                className="text-white/70"
+                style={{ fontFamily: fonts.comfortaa.medium }}
+              >
+                Success
+              </Text>
+            </View>
           </View>
+
+          {/* How commits work explanation */}
+          <Text
+            className="text-white/50 text-xs mt-3 text-left leading-tight"
+            style={{ fontFamily: fonts.comfortaa.medium }}
+          >
+            Commits are earned by walking 100+ steps within 60 minutes after
+            stopping your alarm.
+          </Text>
         </View>
       </SafeAreaView>
     </LinearGradient>

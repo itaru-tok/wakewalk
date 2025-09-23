@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ColorPickerModal from '../../src/components/ColorPickerModal'
+import { fonts } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDarkerShade } from '../../src/utils/color'
 
@@ -51,17 +52,15 @@ export default function SettingsScreen() {
   )
 
   const handleAddGradientColor = useCallback(() => {
-    if (gradientColors.length < 4) {
+    if (gradientColors.length < 3) {
       setGradientColors([...gradientColors, '#FFFFFF'])
     }
   }, [gradientColors, setGradientColors])
 
   const handleRemoveGradientColor = useCallback(
     (index: number) => {
-      if (gradientColors.length > 2) {
-        const newColors = gradientColors.filter((_, i) => i !== index)
-        setGradientColors(newColors)
-      }
+      const newColors = gradientColors.filter((_, i) => i !== index)
+      setGradientColors(newColors)
     },
     [gradientColors, setGradientColors],
   )
@@ -89,7 +88,10 @@ export default function SettingsScreen() {
 
         {/* Header */}
         <View className="px-6 py-4">
-          <Text className="text-white text-2xl font-bold font-comfortaa">
+          <Text
+            className="text-accent text-2xl"
+            style={{ fontFamily: fonts.comfortaa.bold }}
+          >
             Settings
           </Text>
         </View>
@@ -98,7 +100,7 @@ export default function SettingsScreen() {
           {/* Theme Mode Selector */}
           <View className="bg-white/10 rounded-2xl p-4 mb-6">
             <Text className="text-white text-lg font-comfortaa mb-4">
-              Background Style
+              Background Color
             </Text>
 
             <View className="flex-row bg-black/30 rounded-lg p-1">
@@ -116,7 +118,7 @@ export default function SettingsScreen() {
                   <Text
                     className={`${themeMode === 'color' ? 'text-white' : 'text-gray-400'}`}
                   >
-                    Colour
+                    Mono
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -153,7 +155,7 @@ export default function SettingsScreen() {
           {themeMode === 'color' ? (
             <View className="bg-white/10 rounded-2xl p-4 flex-row items-center justify-between mb-6">
               <Text className="text-white text-lg font-comfortaa">
-                Theme Color
+                Mono Color
               </Text>
               <Host style={{ width: 200, height: 10 }}>
                 <ColorPicker
@@ -188,18 +190,16 @@ export default function SettingsScreen() {
                       </Text>
                     </View>
                     <View className="flex-row items-center">
-                      {gradientColors.length > 2 && (
-                        <TouchableOpacity
-                          onPress={() => handleRemoveGradientColor(index)}
-                          className="mr-3"
-                        >
-                          <Ionicons
-                            name="remove-circle"
-                            size={24}
-                            color="#EF4444"
-                          />
-                        </TouchableOpacity>
-                      )}
+                      <TouchableOpacity
+                        onPress={() => handleRemoveGradientColor(index)}
+                        className="mr-3"
+                      >
+                        <Ionicons
+                          name="remove-circle"
+                          size={24}
+                          color="#EF4444"
+                        />
+                      </TouchableOpacity>
                       <Ionicons
                         name="chevron-forward"
                         size={20}
@@ -210,7 +210,7 @@ export default function SettingsScreen() {
                 </View>
               ))}
 
-              {gradientColors.length < 4 && (
+              {gradientColors.length < 3 && (
                 <TouchableOpacity
                   onPress={handleAddGradientColor}
                   className="flex-row items-center justify-center bg-black/30 rounded-lg p-4 mt-2"
@@ -225,7 +225,7 @@ export default function SettingsScreen() {
           )}
 
           {/* Other Settings */}
-          <View className="bg-white/10 rounded-2xl p-4 mb-6">
+          {/* <View className="bg-white/10 rounded-2xl p-4 mb-6">
             <Text className="text-white text-lg font-comfortaa mb-4">
               General
             </Text>
@@ -241,7 +241,7 @@ export default function SettingsScreen() {
             <TouchableOpacity className="py-3">
               <Text className="text-white font-comfortaa">About</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </ScrollView>
       </SafeAreaView>
 

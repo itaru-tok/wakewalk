@@ -79,7 +79,7 @@ export default function LiquidGlassScrollPicker({
             >
               <Text
                 style={{
-                  fontSize: isSelected ? 56 : 28,
+                  fontSize: 36,
                   color: isSelected ? '#ffffff' : 'rgba(255,255,255,0.6)',
                   fontFamily: isSelected
                     ? fonts.comfortaa.bold

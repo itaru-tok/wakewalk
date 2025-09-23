@@ -44,12 +44,12 @@ const builtInSounds = [
   { id: 'waves', name: 'Waves' },
 ]
 
-const importedSounds = [{ id: 'chiangmai', name: 'chiangmai_bird' }]
+// const importedSounds = [{ id: 'chiangmai', name: 'chiangmai_bird' }]
 
 export default function SoundSelectionPage({
   onBack,
 }: SoundSelectionPageProps) {
-  const [showAllImported, setShowAllImported] = useState(false)
+  // const [showAllImported, setShowAllImported] = useState(false)
   const { selectedSoundId, setSelectedSoundId } = useAlarmSettings()
 
   return (
@@ -70,7 +70,7 @@ export default function SoundSelectionPage({
 
         <ScrollView className="flex-1">
           {/* Music Library Section */}
-          <View className="mt-6">
+          {/* <View className="mt-6">
             <Text className="text-gray-500 text-xs px-4 mb-3 font-comfortaa">
               MUSIC LIBRARY
             </Text>
@@ -85,10 +85,10 @@ export default function SoundSelectionPage({
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
 
           {/* Imported Sounds Section */}
-          <View className="mt-6">
+          {/* <View className="mt-6">
             <View className="flex-row justify-between items-center px-4 mb-3">
               <Text className="text-gray-500 text-xs font-comfortaa">
                 IMPORTED SOUNDS
@@ -132,7 +132,7 @@ export default function SoundSelectionPage({
                 Supports .m4a, .wav, .aac, .aiff, and .mp3.
               </Text>
             </View>
-          </View>
+          </View> */}
 
           {/* Built-in Sounds Section */}
           <View className="mt-6 mb-6">
