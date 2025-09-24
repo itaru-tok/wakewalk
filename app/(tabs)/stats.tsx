@@ -1,8 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
+import { BannerAdSize } from 'react-native-google-mobile-ads'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import MyAdmob from '../../src/components/MyAdmob'
 import { fonts, theme } from '../../src/constants/theme'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDailyOutcomeMap } from '../../src/storage/dailyOutcome'
@@ -286,9 +288,13 @@ export default function HybridLiquidGlassStatsScreen() {
             className="text-white/50 text-xs mt-3 text-left leading-tight"
             style={{ fontFamily: fonts.comfortaa.medium }}
           >
-            Commits are earned by walking 100+ steps within 60 minutes after
-            stopping your alarm.
+            Commits are earned by walking 100+ steps within 60 minutes of set
+            alarm time after stopping your alarm.
           </Text>
+        </View>
+        {/* Ad Banner */}
+        <View className="mt-6">
+          <MyAdmob size={BannerAdSize.BANNER} />
         </View>
       </SafeAreaView>
     </LinearGradient>

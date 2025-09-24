@@ -152,7 +152,7 @@ export default function HomeScreen() {
 
       const infoLine =
         mode === 'alarm'
-          ? `After it rings, tap Stop to start Wake Walk session.\nWalk 100 steps within 60 minutes to add to your commit graph.`
+          ? `After it rings, tap Stop to start Wake Walk session.\nWalk 100 steps within 60 minutes of set alarm time to add to your commit graph.`
           : `Wake Walk session doesn’t start in nap mode.`
 
       const message =

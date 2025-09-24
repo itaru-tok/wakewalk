@@ -16,6 +16,7 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 - **Time Picker**: Easy-to-use scroll picker for setting wake-up targets
 - **Contribution Graph**: Visual representation of your wake-up consistency
 - **Settings**: Configure sound, vibration, and snooze preferences
+- **AdMob Integration**: Banner ads support
 - **Cross-Platform**: Works on iOS, Android, and Web
 
 ## 🛠 Tech Stack
@@ -24,6 +25,7 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 - **Routing**: Expo Router with typed routes
 - **UI Styling**: NativeWind (Tailwind CSS for React Native)
 - **State Management**: React hooks with AsyncStorage
+- **Monetization**: AdMob for ads
 - **Language**: TypeScript
 - **Code Quality**: Biome for linting and formatting
 - **Package Manager**: pnpm
@@ -36,13 +38,16 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 │   └── CLAUDE.md           # AI assistant guidance
 ├── src/                     # Source code
 │   ├── components/          # Reusable UI components
+│   │   └── MyAdmob.tsx      # AdMob banner component
 │   ├── constants/           # Theme and configuration
-│   ├── styles/              # Global styles (Tailwind)
+│   │   └── config.ts        # AdMob configuration
+│   ├── context/             # React Context providers
+│   │   └── PremiumContext.tsx # Premium user state management
 │   └── types/               # TypeScript definitions
 ├── app/(tabs)/              # Expo Router screens
 │   ├── _layout.tsx         # Tab navigation
 │   ├── index.tsx           # Main alarm screen
-│   └── stats.tsx           # Statistics screen
+│   └── stats.tsx           # Statistics screen with ads
 ├── assets/                  # Static assets
 └── [config files]           # Root-level configuration
 ```
