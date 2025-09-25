@@ -7,6 +7,9 @@ import { SplashScreen, Stack } from 'expo-router'
 import { useEffect } from 'react'
 import { View } from 'react-native'
 import { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads'
+import { PremiumProvider } from '../src/context/PremiumContext'
+import { ThemeProvider } from '../src/context/ThemeContext'
+import { initializeRevenueCat } from '../src/utils/revenuecat'
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // ignore errors if splash screen was already hidden
@@ -31,6 +34,19 @@ export default function RootLayout() {
     requestConsent().catch(console.error)
   }, [])
 
+  // Initialize RevenueCat for in-app purchases
+  useEffect(() => {
+    const initRevenueCat = async () => {
+      try {
+        await initializeRevenueCat()
+      } catch (error) {
+        console.error('Error initializing RevenueCat:', error)
+      }
+    }
+
+    initRevenueCat()
+  }, [])
+
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync().catch(() => {
@@ -43,5 +59,11 @@ export default function RootLayout() {
     return <View style={{ flex: 1, backgroundColor: '#000' }} />
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />
+  return (
+    <ThemeProvider>
+      <PremiumProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </PremiumProvider>
+    </ThemeProvider>
+  )
 }

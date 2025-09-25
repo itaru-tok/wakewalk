@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useState } from 'react'
 import {
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   Text,
@@ -14,8 +15,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ColorPickerModal from '../../src/components/ColorPickerModal'
 import { fonts } from '../../src/constants/theme'
+import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDarkerShade } from '../../src/utils/color'
+import { presentPaywall } from '../../src/utils/revenuecat'
 
 export default function SettingsScreen() {
   const {
@@ -26,6 +29,8 @@ export default function SettingsScreen() {
     gradientColors,
     setGradientColors,
   } = useTheme()
+
+  const { isPremium, isLoading } = usePremium()
 
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [editingGradientIndex, setEditingGradientIndex] = useState<
@@ -124,7 +129,13 @@ export default function SettingsScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setThemeMode('gradient')}
+                onPress={() => {
+                  if (isPremium) {
+                    setThemeMode('gradient')
+                  } else {
+                    presentPaywall().catch(console.error)
+                  }
+                }}
                 className={`flex-1 py-3 rounded-lg ${
                   themeMode === 'gradient' ? 'bg-white/20' : ''
                 }`}
@@ -142,10 +153,18 @@ export default function SettingsScreen() {
                     }}
                   />
                   <Text
-                    className={`${themeMode === 'gradient' ? 'text-white' : 'text-gray-400'}`}
+                    className={`${themeMode === 'gradient' ? 'text-white' : 'text-gray-400'} ml-2`}
                   >
-                    Gradient
+                    {isPremium ? 'Gradient' : 'Gradient (Pro)'}
                   </Text>
+                  {!isPremium && (
+                    <Ionicons
+                      name="lock-closed"
+                      size={16}
+                      color="#F59E0B"
+                      style={{ marginLeft: 4 }}
+                    />
+                  )}
                 </View>
               </TouchableOpacity>
             </View>
@@ -165,7 +184,7 @@ export default function SettingsScreen() {
                 />
               </Host>
             </View>
-          ) : (
+          ) : isPremium ? (
             <View className="bg-white/10 rounded-2xl p-4 mb-6">
               <Text className="text-white text-lg font-comfortaa mb-4">
                 Gradient Colors
@@ -222,7 +241,51 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               )}
             </View>
+          ) : (
+            <View>
+              <Text className="text-white text-lg font-comfortaa">
+                Gradient Colors (Pro)
+              </Text>
+            </View>
           )}
+
+          {/* Premium Section */}
+          <View className="bg-white/10 rounded-2xl p-4 mb-6">
+            <Text className="text-white text-lg font-comfortaa mb-4">
+              Pro Plan
+            </Text>
+
+            {isLoading ? (
+              <View className="flex-row items-center justify-center py-4">
+                <ActivityIndicator color="white" />
+                <Text className="text-white/70 ml-3 font-comfortaa">
+                  Loading...
+                </Text>
+              </View>
+            ) : isPremium ? (
+              <View className="flex-row items-center justify-between rounded-lg p-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  <Text className="text-white ml-3 font-comfortaa">
+                    Pro Active
+                  </Text>
+                </View>
+                <Ionicons name="star" size={20} color="#F59E0B" />
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => presentPaywall().catch(console.error)}
+                className="flex-row items-center justify-between bg-yellow-500/20 rounded-lg p-4"
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="lock-closed" size={24} color="#F59E0B" />
+                  <Text className="text-white ml-3 font-comfortaa">
+                    Unlock Pro
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
 
           {/* Other Settings */}
           {/* <View className="bg-white/10 rounded-2xl p-4 mb-6">

@@ -6,6 +6,7 @@ import { BannerAdSize } from 'react-native-google-mobile-ads'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import MyAdmob from '../../src/components/MyAdmob'
 import { fonts, theme } from '../../src/constants/theme'
+import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDailyOutcomeMap } from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
@@ -29,6 +30,7 @@ interface DayData {
 
 export default function HybridLiquidGlassStatsScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
+  const { isPremium } = usePremium()
   const insets = useSafeAreaInsets()
   const TAB_BAR_HEIGHT = 90
   const bottomPadding = insets.bottom + TAB_BAR_HEIGHT + 12
@@ -292,10 +294,12 @@ export default function HybridLiquidGlassStatsScreen() {
             alarm time after stopping your alarm.
           </Text>
         </View>
-        {/* Ad Banner */}
-        <View className="mt-6">
-          <MyAdmob size={BannerAdSize.BANNER} />
-        </View>
+        {/* Ad Banner - Premium users don't see ads */}
+        {!isPremium && (
+          <View className="mt-6">
+            <MyAdmob size={BannerAdSize.BANNER} />
+          </View>
+        )}
       </SafeAreaView>
     </LinearGradient>
   )
