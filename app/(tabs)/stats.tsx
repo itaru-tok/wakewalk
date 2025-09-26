@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { BannerAdSize } from 'react-native-google-mobile-ads'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -8,33 +8,40 @@ import MyAdmob from '../../src/components/MyAdmob'
 import { fonts, theme } from '../../src/constants/theme'
 import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
-import { getDailyOutcomeMap } from '../../src/storage/dailyOutcome'
+import {
+  type DayStatus,
+  useCalendarData,
+} from '../../src/hooks/useCalendarData'
+import { useStreaks } from '../../src/hooks/useStreaks'
 import { getDarkerShade } from '../../src/utils/color'
-import { getDateKey } from '../../src/utils/time'
 
 const CELL_SIZE = 14
 const CELL_MARGIN = 3
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
 
-interface MonthData {
-  year: number
-  month: number
-  weeks: (DayData | null)[][]
-}
-
-type DayStatus = 'success' | 'fail' | 'future' | 'empty'
-
-interface DayData {
-  date: Date
-  status: DayStatus
-}
+type MonthLabel = (typeof MONTH_LABELS)[number]
 
 export default function HybridLiquidGlassStatsScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
   const { isPremium } = usePremium()
+  const { streakData, updateStreaks } = useStreaks()
   const insets = useSafeAreaInsets()
   const TAB_BAR_HEIGHT = 90
   const bottomPadding = insets.bottom + TAB_BAR_HEIGHT + 12
-  const [monthsData, setMonthsData] = useState<MonthData[]>([])
+  const { monthsData, buildCalendar } = useCalendarData()
 
   const getBackgroundColors = useCallback(() => {
     if (themeMode === 'color') {
@@ -47,93 +54,18 @@ export default function HybridLiquidGlassStatsScreen() {
     ]
   }, [themeMode, themeColor, gradientColors])
 
-  const buildCalendar = useCallback(async () => {
-    const outcomes = await getDailyOutcomeMap()
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const monthsArray: MonthData[] = []
-
-    for (let m = 0; m < 12; m++) {
-      const monthDate = new Date()
-      monthDate.setMonth(monthDate.getMonth() - (11 - m))
-
-      const year = monthDate.getFullYear()
-      const month = monthDate.getMonth()
-
-      const weeks: (DayData | null)[][] = []
-
-      const firstDay = new Date(year, month, 1)
-      const lastDay = new Date(year, month + 1, 0)
-      const totalDays = lastDay.getDate()
-
-      const allDays: (DayData | null)[] = []
-      const firstDayOfWeek = firstDay.getDay()
-      for (let i = 0; i < firstDayOfWeek; i++) {
-        allDays.push(null)
-      }
-
-      for (let day = 1; day <= totalDays; day++) {
-        const date = new Date(year, month, day)
-        date.setHours(0, 0, 0, 0)
-        const dateKey = getDateKey(date)
-        const record = outcomes[dateKey]
-
-        let status: DayStatus = 'empty'
-        if (date.getTime() > today.getTime()) {
-          status = 'future'
-        } else if (record) {
-          if (record.mode === 'nap') {
-            status = 'empty'
-          } else if (record.outcome === 'success') {
-            status = 'success'
-          } else if (record.outcome === 'fail') {
-            status = 'fail'
-          } else {
-            status = 'empty'
-          }
-        }
-
-        allDays.push({ date, status })
-      }
-
-      while (allDays.length % 7 !== 0) {
-        allDays.push(null)
-      }
-
-      for (let i = 0; i < allDays.length; i += 7) {
-        weeks.push(allDays.slice(i, i + 7))
-      }
-
-      monthsArray.push({ year, month, weeks })
-    }
-
-    setMonthsData(monthsArray)
-  }, [])
-
   useFocusEffect(
     useCallback(() => {
-      buildCalendar()
-    }, [buildCalendar]),
+      const loadData = async () => {
+        await updateStreaks()
+        await buildCalendar()
+      }
+
+      loadData()
+    }, [buildCalendar, updateStreaks]),
   )
 
-  const getMonthName = (month: number) => {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ]
-    return months[month]
-  }
+  const getMonthName = (month: number): MonthLabel => MONTH_LABELS[month]
 
   const getDayColor = (status: DayStatus) => {
     switch (status) {
@@ -149,6 +81,16 @@ export default function HybridLiquidGlassStatsScreen() {
   }
 
   const getDayLabels = () => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+  const formatDateRange = (startDate: Date | null, endDate: Date | null) => {
+    if (!startDate || !endDate) return ''
+
+    const formatDate = (date: Date) => {
+      return `${MONTH_LABELS[date.getMonth()]} ${date.getDate()}`
+    }
+
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`
+  }
 
   return (
     <LinearGradient
@@ -293,6 +235,76 @@ export default function HybridLiquidGlassStatsScreen() {
             Commits are earned by walking 100+ steps within 60 minutes of set
             alarm time after stopping your alarm.
           </Text>
+        </View>
+
+        {/* Streak Section */}
+        <View className="bg-white/10 rounded-2xl p-6 mt-6">
+          <Text
+            className="text-white/90 text-lg mb-4"
+            style={{ fontFamily: fonts.comfortaa.bold }}
+          >
+            Streaks
+          </Text>
+
+          <View className="flex-row justify-between">
+            {/* Current Streak */}
+            <View className="flex-1 items-center">
+              <View className="items-center mb-2">
+                <Text
+                  className="text-white text-5xl font-bold"
+                  style={{ fontFamily: fonts.comfortaa.bold }}
+                >
+                  {streakData.currentStreak}
+                </Text>
+                <Text
+                  className="text-white/70 text-sm"
+                  style={{ fontFamily: fonts.comfortaa.medium }}
+                >
+                  Current Streak
+                </Text>
+              </View>
+              {streakData.currentStreakStart && streakData.currentStreakEnd && (
+                <Text
+                  className="text-white/50 text-xs text-center"
+                  style={{ fontFamily: fonts.comfortaa.medium }}
+                >
+                  {formatDateRange(
+                    streakData.currentStreakStart,
+                    streakData.currentStreakEnd,
+                  )}
+                </Text>
+              )}
+            </View>
+
+            {/* Longest Streak */}
+            <View className="flex-1 items-center">
+              <View className="items-center mb-2">
+                <Text
+                  className="text-white text-5xl font-bold"
+                  style={{ fontFamily: fonts.comfortaa.bold }}
+                >
+                  {streakData.longestStreak}
+                </Text>
+                <Text
+                  className="text-white/70 text-sm"
+                  style={{ fontFamily: fonts.comfortaa.medium }}
+                >
+                  Longest Streak
+                </Text>
+              </View>
+              {streakData.longestStreakStart && streakData.longestStreakEnd && (
+                <Text
+                  className="text-white/50 text-xs text-center"
+                  style={{ fontFamily: fonts.comfortaa.medium }}
+                >
+                  {formatDateRange(
+                    streakData.longestStreakStart,
+                    streakData.longestStreakEnd,
+                  )}
+                </Text>
+              )}
+            </View>
+          </View>
         </View>
         {/* Ad Banner - Premium users don't see ads */}
         {!isPremium && (
