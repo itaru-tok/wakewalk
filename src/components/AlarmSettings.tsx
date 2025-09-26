@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 // import Slider from '@react-native-community/slider'
 import { useMemo } from 'react'
 import { Switch, Text, TouchableOpacity, View } from 'react-native'
+import { getSoundDisplayName } from '../constants/sounds'
 import { useAlarmSettings } from '../context/AlarmSettingsContext'
 import { useTheme } from '../context/ThemeContext'
 import { getColorBrightness } from '../utils/color'
@@ -12,15 +13,6 @@ interface AlarmSettingsProps {
   onSnoozePress?: () => void
   onDurationPress?: () => void
 }
-
-const soundOptions = [
-  { id: 'chiangmai', name: 'chiangmai_bird', file: 'chiangmai_bird.m4a' },
-  { id: 'apex', name: 'Apex', file: 'apex.mp3' },
-  { id: 'beacon', name: 'Beacon', file: 'beacon.mp3' },
-  { id: 'bulletin', name: 'Bulletin', file: 'bulletin.mp3' },
-  { id: 'chimes', name: 'Chimes', file: 'chimes.mp3' },
-  { id: 'cosmic', name: 'Cosmic', file: 'cosmic.mp3' },
-]
 
 export default function AlarmSettings({
   onSoundPress,
@@ -53,10 +45,7 @@ export default function AlarmSettings({
     return isDarkColor ? '#10B981' : primaryAccent
   }, [primaryAccent])
 
-  const selectedSoundName =
-    soundOptions.find((s) => s.id === selectedSoundId)?.name ||
-    selectedSoundId ||
-    'Apex'
+  const selectedSoundName = getSoundDisplayName(selectedSoundId)
 
   const durationLabel = `${ringDurationMinutes} min`
 
@@ -91,7 +80,7 @@ export default function AlarmSettings({
                   Sound Type
                 </Text>
                 <View className="flex-row items-center">
-                  <Text className="text-gray-400 mr-2 font-comfortaa">
+                  <Text className="text-white mr-2 font-comfortaa">
                     {selectedSoundName}
                   </Text>
                   <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />

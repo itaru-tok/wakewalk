@@ -33,8 +33,39 @@ if (Platform.OS === 'ios' && !alarmModule) {
 }
 
 type AlarmEventSubscription = { remove: () => void }
-type AlarmEventEmitter = {
-  addListener: (event: string, listener: (...args: any[]) => void) => AlarmEventSubscription
+
+type AlarmEventPayloads = {
+  AlarmArmed: { scheduledAt?: string } | undefined
+  AlarmTriggered: { triggeredAt?: string } | undefined
+  AlarmStopped: undefined
+  AlarmError: { message?: string } | undefined
+}
+
+type AlarmEventName = keyof AlarmEventPayloads
+
+type AlarmEventListener<E extends AlarmEventName> = (
+  payload: AlarmEventPayloads[E],
+) => void
+
+interface AlarmEventEmitter {
+  addListener<E extends AlarmEventName>(
+    event: E,
+    listener: AlarmEventListener<E>,
+  ): AlarmEventSubscription
+}
+
+class NativeAlarmEventEmitter implements AlarmEventEmitter {
+  constructor(private readonly emitter: NativeEventEmitter) {}
+
+  addListener<E extends AlarmEventName>(
+    event: E,
+    listener: AlarmEventListener<E>,
+  ): AlarmEventSubscription {
+    return this.emitter.addListener(
+      event,
+      listener as (...args: unknown[]) => void,
+    )
+  }
 }
 
 class NoopEmitter implements AlarmEventEmitter {
@@ -46,7 +77,7 @@ class NoopEmitter implements AlarmEventEmitter {
 const eventModule = alarmModule as unknown as NativeModule | undefined
 
 export const alarmEventEmitter: AlarmEventEmitter = eventModule
-  ? new NativeEventEmitter(eventModule)
+  ? new NativeAlarmEventEmitter(new NativeEventEmitter(eventModule))
   : new NoopEmitter()
 
 export function startNativeAlarm(

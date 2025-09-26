@@ -5,24 +5,30 @@ import {
   useMemo,
   useState,
 } from 'react'
+import {
+  BUILT_IN_SOUNDS,
+  type BuiltInSoundId,
+  DEFAULT_SOUND_ID,
+} from '../constants/sounds'
+
+export { DEFAULT_SOUND_ID } from '../constants/sounds'
 
 const DEFAULT_RING_DURATION_MINUTES = 3
 const RING_DURATION_OPTIONS_MINUTES = [1, 3, 5] as const
-export const DEFAULT_SOUND_ID = 'chiangmai'
 const DEFAULT_VIBRATION_ENABLED = true
 const DEFAULT_SOUND_ENABLED = true
 const DEFAULT_SNOOZE_ENABLED = false
 const DEFAULT_SNOOZE_DURATION_MINUTES = 3
 const DEFAULT_SNOOZE_REPEAT_COUNT = 3
 
-export const ALARM_SOUND_IDS = [DEFAULT_SOUND_ID] as const
+export const ALARM_SOUND_IDS = BUILT_IN_SOUNDS.map((sound) => sound.id)
 
 interface AlarmSettingsContextValue {
   ringDurationMinutes: number
   setRingDurationMinutes: (minutes: number) => void
   ringDurationOptions: readonly number[]
-  selectedSoundId: string
-  setSelectedSoundId: (id: string) => void
+  selectedSoundId: BuiltInSoundId
+  setSelectedSoundId: (id: BuiltInSoundId) => void
   vibrationEnabled: boolean
   setVibrationEnabled: (enabled: boolean) => void
   soundEnabled: boolean
@@ -44,7 +50,7 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
     DEFAULT_RING_DURATION_MINUTES,
   )
   const [selectedSoundId, setSelectedSoundId] =
-    useState<string>(DEFAULT_SOUND_ID)
+    useState<BuiltInSoundId>(DEFAULT_SOUND_ID)
   const [vibrationEnabled, setVibrationEnabled] = useState(
     DEFAULT_VIBRATION_ENABLED,
   )

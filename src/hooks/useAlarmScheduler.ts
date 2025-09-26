@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import * as Notifications from 'expo-notifications'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform } from 'react-native'
+import { SOUND_FILE_MAP } from '../constants/sounds'
 import {
   DEFAULT_SOUND_ID,
   useAlarmSettings,
@@ -19,10 +20,6 @@ import {
 } from '../utils/notifications'
 
 type AlarmStatus = 'idle' | 'armed' | 'ringing'
-
-const SOUND_FILE_MAP: Record<string, string> = {
-  [DEFAULT_SOUND_ID]: 'chiangmai_bird.m4a',
-}
 
 const logError = (...args: Parameters<typeof console.error>) => {
   if (__DEV__) {
@@ -212,7 +209,6 @@ export function useAlarmScheduler() {
     },
     [
       armAlarmForTarget,
-      ensureNotificationSetup,
       requestNotificationPermission,
       snoozeEnabled,
       snoozeRepeatCount,
@@ -264,7 +260,6 @@ export function useAlarmScheduler() {
   }, [
     armAlarmForTarget,
     cancelScheduledNotification,
-    ensureNotificationSetup,
     snoozeDurationMinutes,
     snoozeEnabled,
   ])
