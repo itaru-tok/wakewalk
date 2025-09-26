@@ -20,7 +20,7 @@ import {
   upsertDailyOutcome,
 } from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
-import { addMinutes, formatHHmm, getDateKey } from '../../src/utils/time'
+import { addMinutes, formatClockTime, getDateKey } from '../../src/utils/time'
 
 function ActionButton({
   label,
@@ -134,7 +134,7 @@ export default function HomeScreen() {
   )
 
   const scheduledTimeLabel = useMemo(() => {
-    return scheduledAt ? formatHHmm(scheduledAt) : null
+    return scheduledAt ? formatClockTime(scheduledAt) : null
   }, [scheduledAt])
 
   const handleArm = useCallback(async () => {
@@ -170,10 +170,11 @@ export default function HomeScreen() {
           ? `After it rings, tap Stop to start Wake Walk session.\nWalk 100 steps within 60 minutes of set alarm time to add to your commit graph.`
           : `Wake Walk session doesn’t start in nap mode.`
 
+      const formattedTarget = formatClockTime(target)
       const message =
         mode === 'alarm'
-          ? `Alarm scheduled for ${formatHHmm(target)}.\n\n${infoLine}`
-          : `Nap scheduled for ${formatHHmm(target)}.\n\n${infoLine}`
+          ? `Alarm scheduled for ${formattedTarget}.\n\n${infoLine}`
+          : `Nap scheduled for ${formattedTarget}.\n\n${infoLine}`
       Alert.alert(message)
     } catch (error) {
       logError('Failed to schedule alarm', error)
@@ -270,7 +271,7 @@ export default function HomeScreen() {
       if (next) {
         Alert.alert(
           'Snoozed',
-          `Alarm snoozed for ${snoozeDurationMinutes} min. Next ring at around ${formatHHmm(next)}.`,
+          `Alarm snoozed for ${snoozeDurationMinutes} min. Next ring at around ${formatClockTime(next)}.`,
         )
       }
     } catch (error) {
