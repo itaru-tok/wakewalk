@@ -152,6 +152,16 @@ WakeWalk.app ← Only registered files are included
 
 Even if files exist in the filesystem, they won't be included in the app unless registered in the Xcode project. This registration is only needed once - after that, `pnpm ios` will work on its own.
 
+### Which AlarmManager.swift is used?
+
+It can be confusing because there are three copies in the repo:
+
+- `ios/AlarmManager.swift` → this is the file Xcode actually compiles. Change this if you are hotfixing Swift code directly.
+- `ios-modules/AlarmManager.swift` → source-of-truth for the Expo config plugin. After editing it, run `pnpm prebuild:ios` (without `--clean`) to sync the change into the native project.
+- `ios/WakeWalk/AlarmManager.swift` → generated copy produced by the plugin. You normally should not edit this file; it is overwritten during prebuild.
+
+Keep the first two files in sync if you modify the native code. A quick way is to edit `ios-modules/AlarmManager.swift` and then copy it to `ios/AlarmManager.swift` (or rerun the prebuild step) before building.
+
 ## 🎨 Design System
 
 The app uses a consistent design system with:
@@ -226,4 +236,3 @@ This project is licensed under the MIT License.
 ---
 
 **WakeWalk** - Building better mornings, one step at a time! 🌅
-

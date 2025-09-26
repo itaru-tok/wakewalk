@@ -161,10 +161,20 @@ class AlarmManager: RCTEventEmitter {
       let trigger = DispatchSource.makeTimerSource(queue: .global())
       trigger.schedule(deadline: .now() + triggerTime)
       trigger.setEventHandler { [weak self] in
-        self?.stopSilentLoop()
-        self?.startAlarmLoop(soundName: soundName)
-        self?.startVibrationLoop()
-        self?.sendEvent(withName: "AlarmTriggered", body: ["triggeredAt": Self.isoFormatter.string(from: Date())])
+        guard let self else { return }
+
+        if self.shouldPlaySound {
+          self.stopSilentLoop()
+          self.startAlarmLoop(soundName: soundName)
+        } else if self.shouldVibrate {
+          // Keep a silent audio loop running so vibration continues in background
+          self.startSilentLoop()
+        } else {
+          self.stopSilentLoop()
+        }
+
+        self.startVibrationLoop()
+        self.sendEvent(withName: "AlarmTriggered", body: ["triggeredAt": Self.isoFormatter.string(from: Date())])
       }
       trigger.resume()
       triggerTimer = trigger

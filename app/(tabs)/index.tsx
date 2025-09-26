@@ -25,17 +25,32 @@ import { addMinutes, formatHHmm, getDateKey } from '../../src/utils/time'
 function ActionButton({
   label,
   onPress,
+  size = 'default',
 }: {
   label: string
   onPress: () => void
+  size?: 'default' | 'compact'
 }) {
+  const containerClasses =
+    size === 'compact'
+      ? 'px-6 py-2 rounded-[28px] border border-white/25 bg-white/10'
+      : 'px-14 py-3 rounded-[35px] border border-white/25 bg-white/10'
+
+  const textClasses =
+    size === 'compact'
+      ? 'text-white text-2xl text-center'
+      : 'text-white text-4xl text-center'
+
+  const maxLines = size === 'compact' ? 2 : 1
+
   return (
     <Host>
       <Button variant="borderless" onPress={onPress}>
-        <View className="px-14 py-3 rounded-[35px] border border-white/25 bg-white/10">
+        <View className={containerClasses}>
           <Text
-            className="text-white text-4xl text-center"
+            className={textClasses}
             style={{ fontFamily: fonts.comfortaa.bold }}
+            numberOfLines={maxLines}
           >
             {label}
           </Text>
@@ -429,14 +444,19 @@ export default function HomeScreen() {
             {/* Alarm Actions */}
             {isRinging ? (
               canSnooze ? (
-                <View className="mt-4 flex-row space-x-3">
-                  <View className="flex-1">
-                    <ActionButton label="Stop" onPress={handleStopAlarm} />
+                <View className="mt-4 flex-row justify-center gap-x-6">
+                  <View className="flex-none">
+                    <ActionButton
+                      label="Stop"
+                      onPress={handleStopAlarm}
+                      size="compact"
+                    />
                   </View>
-                  <View className="flex-1">
+                  <View className="flex-none">
                     <ActionButton
                       label={snoozeButtonLabel}
                       onPress={handleSnoozeAlarm}
+                      size="compact"
                     />
                   </View>
                 </View>

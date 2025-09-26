@@ -18,7 +18,7 @@
     "eas:login": "eas login",
     "eas:build:dev:ios": "eas build --platform ios --profile development",
     "eas:build:preview:ios": "eas build --platform ios --profile preview",
-    "prebuild:ios": "npx expo prebuild -p ios --clean"
+    "prebuild:ios": "npx expo prebuild -p ios"
   },
   "dependencies": {
     "@expo-google-fonts/comfortaa": "^0.4.1",
