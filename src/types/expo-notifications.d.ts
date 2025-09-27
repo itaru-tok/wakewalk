@@ -102,7 +102,9 @@ declare module 'expo-notifications' {
     trigger: NotificationTriggerInput | null
   }): Promise<string>
 
-  export function cancelScheduledNotificationAsync(identifier: string): Promise<void>
+  export function cancelScheduledNotificationAsync(
+    identifier: string,
+  ): Promise<void>
   export function dismissNotificationAsync(identifier: string): Promise<void>
   export function dismissAllNotificationsAsync(): Promise<void>
   export function getPermissionsAsync(): Promise<NotificationPermissionsStatus>

@@ -1,5 +1,8 @@
 import * as Notifications from 'expo-notifications'
-import { AndroidImportance, AndroidNotificationVisibility } from 'expo-notifications'
+import {
+  AndroidImportance,
+  AndroidNotificationVisibility,
+} from 'expo-notifications'
 import { Platform } from 'react-native'
 
 const ALARM_CHANNEL_ID = 'alarm-channel'
