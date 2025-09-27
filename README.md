@@ -162,6 +162,17 @@ It can be confusing because there are three copies in the repo:
 
 Keep the first two files in sync if you modify the native code. A quick way is to edit `ios-modules/AlarmManager.swift` and then copy it to `ios/AlarmManager.swift` (or rerun the prebuild step) before building.
 
+### Environment Variables (EAS)
+
+Remember to register the public keys used in production builds. These values are safe to expose in the client binary, but they must exist when running the EAS pipeline:
+
+```bash
+eas env:create production --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value YOUR_REVENUECAT_PUB_KEY --visibility plaintext
+eas env:create production --name EXPO_PUBLIC_ADMOB_IOS_BANNER --value YOUR_ADMOB_APP_ID --visibility plaintext
+```
+
+If you need the same values for other environments (preview or development), replace `production` with the desired environment name.
+
 ## 🎨 Design System
 
 The app uses a consistent design system with:
