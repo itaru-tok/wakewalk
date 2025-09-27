@@ -56,7 +56,6 @@ export default {
         UIBackgroundModes: [
           'audio',
           'fetch',
-          'processing',
           'remote-notification',
         ],
       },

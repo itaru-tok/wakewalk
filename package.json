@@ -18,6 +18,8 @@
     "eas:login": "eas login",
     "eas:build:dev:ios": "eas build --platform ios --profile development",
     "eas:build:preview:ios": "eas build --platform ios --profile preview",
+    "eas:build:production:ios": "eas build --platform ios --profile production",
+    "eas:submit:ios": "eas submit --platform ios",
     "prebuild:ios": "npx expo prebuild -p ios"
   },
   "dependencies": {
