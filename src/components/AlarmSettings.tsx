@@ -74,13 +74,11 @@ export default function AlarmSettings({
             {soundEnabled && (
               <TouchableOpacity
                 onPress={onSoundPress}
-                className="flex-row justify-between items-center mt-3"
+                className="flex-row justify-between items-center mt-4"
               >
-                <Text className="text-white text-base font-comfortaa">
-                  Sound Type
-                </Text>
+                <Text className="text-gray-400 font-comfortaa">Sound Type</Text>
                 <View className="flex-row items-center">
-                  <Text className="text-white mr-2 font-comfortaa">
+                  <Text className="text-gray-400 mr-2 font-comfortaa">
                     {selectedSoundName}
                   </Text>
                   <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -122,7 +120,7 @@ export default function AlarmSettings({
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Text className="text-gray-300 mr-2 font-comfortaa">
+                <Text className="text-gray-400 mr-2 font-comfortaa">
                   {durationLabel}
                 </Text>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -147,16 +145,16 @@ export default function AlarmSettings({
 
           {/* Snooze Options */}
           {snoozeEnabled && (
-            <View className="mt-2">
+            <View className="mt-4">
               <TouchableOpacity
                 onPress={onSnoozePress}
                 className="flex-row justify-between items-center"
               >
-                <Text className="text-white text-base font-comfortaa">
+                <Text className="text-gray-400 font-comfortaa">
                   Snooze Options
                 </Text>
                 <View className="flex-row items-center">
-                  <Text className="text-gray-400 mr-2 font-comfortaa text-sm">
+                  <Text className="text-gray-400 mr-2 font-comfortaa">
                     {snoozeDurationMinutes} min, {snoozeRepeatCount}x
                   </Text>
                   <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />

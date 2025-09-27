@@ -27,6 +27,14 @@ export default function SoundSelectionPage({
   const { selectedSoundId, setSelectedSoundId } = useAlarmSettings()
   const previewSoundRef = useRef<Audio.Sound | null>(null)
 
+  // Allow preview sounds to play even if the device is in silent mode.
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      allowsRecordingIOS: false,
+    }).catch(() => undefined)
+  }, [])
+
   useEffect(() => {
     return () => {
       if (previewSoundRef.current) {
@@ -36,6 +44,7 @@ export default function SoundSelectionPage({
     }
   }, [])
 
+  // Play a one-shot preview of the selected sound, replacing any existing preview audio.
   const playPreview = useCallback(async (soundId: BuiltInSoundId) => {
     const asset = SOUND_ASSET_MAP[soundId]
     if (!asset) return
@@ -85,7 +94,7 @@ export default function SoundSelectionPage({
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <TouchableOpacity onPress={onBack} className="p-2">
-            <Ionicons name="chevron-back" size={24} color="#06B6D4" />
+            <Ionicons name="chevron-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-semibold font-comfortaa">
             Sound
@@ -173,7 +182,7 @@ export default function SoundSelectionPage({
                       index > 0 ? 'border-t border-gray-800' : ''
                     }`}
                     onPress={() => handleSelectSound(sound.id)}
-                    activeOpacity={1}
+                    activeOpacity={0.7}
                   >
                     <Text className="text-white font-comfortaa">
                       {getSoundDisplayName(sound.id)}

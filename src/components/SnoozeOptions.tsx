@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useState } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -17,8 +16,6 @@ interface SnoozeOptionsProps {
 const durationOptions = [1, 3, 5]
 const repeatOptions = [1, 2, 3]
 
-type SnoozeSection = 'duration' | 'repeat' | null
-
 export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
   const {
     snoozeDurationMinutes,
@@ -26,11 +23,6 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
     snoozeRepeatCount,
     setSnoozeRepeatCount,
   } = useAlarmSettings()
-  const [expandedSection, setExpandedSection] = useState<SnoozeSection>(null)
-
-  const toggleSection = (section: Exclude<SnoozeSection, null>) => {
-    setExpandedSection(expandedSection === section ? null : section)
-  }
 
   return (
     <View className="flex-1 bg-black">
@@ -40,7 +32,7 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <TouchableOpacity onPress={onBack} className="p-2">
-            <Ionicons name="chevron-back" size={24} color="#06B6D4" />
+            <Ionicons name="chevron-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-semibold font-comfortaa">
             Snooze
@@ -49,113 +41,69 @@ export default function SnoozeOptions({ onBack }: SnoozeOptionsProps) {
         </View>
 
         <ScrollView className="flex-1">
-          {/* Duration Section */}
+          {/* Snooze Duration Section */}
           <View className="mt-6">
-            <TouchableOpacity
-              onPress={() => toggleSection('duration')}
-              className="mx-4 bg-gray-900 rounded-lg"
-            >
-              <View className="flex-row justify-between items-center p-4">
-                <Text className="text-white text-lg font-comfortaa">
-                  Snooze Duration
-                </Text>
-                <View className="flex-row items-center">
-                  <Text className="text-cyan-500 mr-2 font-comfortaa">
-                    {snoozeDurationMinutes} min
+            <Text className="text-white text-xs px-4 mb-3 font-comfortaa">
+              Snooze Duration
+            </Text>
+            <View className="bg-gray-900 mx-4 rounded-lg overflow-hidden">
+              {durationOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => setSnoozeDurationMinutes(option)}
+                  className={`flex-row justify-between items-center px-4 py-3 ${
+                    index > 0 ? 'border-t border-gray-800' : ''
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-white font-comfortaa">
+                    {option} {option === 1 ? 'minute' : 'minutes'}
                   </Text>
-                  <Ionicons
-                    name={
-                      expandedSection === 'duration'
-                        ? 'chevron-up'
-                        : 'chevron-down'
-                    }
-                    size={20}
-                    color="#06B6D4"
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            {expandedSection === 'duration' && (
-              <View className="mx-4 mt-2 bg-gray-900 rounded-lg overflow-hidden">
-                {durationOptions.map((option, index) => (
-                  <TouchableOpacity
-                    key={option}
-                    onPress={() => {
-                      setSnoozeDurationMinutes(option)
-                      setExpandedSection(null)
-                    }}
-                    className={`flex-row justify-between items-center p-4 ${
-                      index > 0 ? 'border-t border-gray-800' : ''
-                    }`}
-                  >
-                    <Text className="text-white font-comfortaa">
-                      {option} minutes
-                    </Text>
-                    {snoozeDurationMinutes === option && (
-                      <Ionicons name="checkmark" size={20} color="#06B6D4" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+                  {snoozeDurationMinutes === option && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#10B981"
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Repeat Count Section */}
           <View className="mt-6">
-            <TouchableOpacity
-              onPress={() => toggleSection('repeat')}
-              className="mx-4 bg-gray-900 rounded-lg"
-            >
-              <View className="flex-row justify-between items-center p-4">
-                <Text className="text-white text-lg font-comfortaa">
-                  Repeat Count
-                </Text>
-                <View className="flex-row items-center">
-                  <Text className="text-cyan-500 mr-2 font-comfortaa">
-                    {snoozeRepeatCount}x
+            <Text className="text-white text-xs px-4 mb-3 font-comfortaa">
+              Repeat Count
+            </Text>
+            <View className="bg-gray-900 mx-4 rounded-lg overflow-hidden">
+              {repeatOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => setSnoozeRepeatCount(option)}
+                  className={`flex-row justify-between items-center px-4 py-3 ${
+                    index > 0 ? 'border-t border-gray-800' : ''
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-white font-comfortaa">
+                    {option} {option === 1 ? 'time' : 'times'}
                   </Text>
-                  <Ionicons
-                    name={
-                      expandedSection === 'repeat'
-                        ? 'chevron-up'
-                        : 'chevron-down'
-                    }
-                    size={20}
-                    color="#06B6D4"
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            {expandedSection === 'repeat' && (
-              <View className="mx-4 mt-2 bg-gray-900 rounded-lg overflow-hidden">
-                {repeatOptions.map((option, index) => (
-                  <TouchableOpacity
-                    key={option}
-                    onPress={() => {
-                      setSnoozeRepeatCount(option)
-                      setExpandedSection(null)
-                    }}
-                    className={`flex-row justify-between items-center p-4 ${
-                      index > 0 ? 'border-t border-gray-800' : ''
-                    }`}
-                  >
-                    <Text className="text-white font-comfortaa">
-                      {option} {option === 1 ? 'time' : 'times'}
-                    </Text>
-                    {snoozeRepeatCount === option && (
-                      <Ionicons name="checkmark" size={20} color="#06B6D4" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+                  {snoozeRepeatCount === option && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#10B981"
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Info Text */}
           <View className="px-6 mt-8">
-            <Text className="text-gray-500 text-sm text-center font-comfortaa">
+            <Text className="text-white text-sm text-center font-comfortaa">
               Your alarm will snooze for {snoozeDurationMinutes} minutes and
               repeat up to {snoozeRepeatCount} times.
             </Text>

@@ -7,6 +7,7 @@ import { SplashScreen, Stack } from 'expo-router'
 import { useEffect } from 'react'
 import { View } from 'react-native'
 import { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads'
+import { AlarmSettingsProvider } from '../src/context/AlarmSettingsContext'
 import { PremiumProvider } from '../src/context/PremiumContext'
 import { ThemeProvider } from '../src/context/ThemeContext'
 import { initializeRevenueCat } from '../src/utils/revenuecat'
@@ -61,9 +62,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <PremiumProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-      </PremiumProvider>
+      <AlarmSettingsProvider>
+        <PremiumProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </PremiumProvider>
+      </AlarmSettingsProvider>
     </ThemeProvider>
   )
 }

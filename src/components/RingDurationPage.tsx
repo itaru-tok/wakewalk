@@ -27,7 +27,7 @@ export default function RingDurationPage({ onBack }: RingDurationPageProps) {
 
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <TouchableOpacity onPress={onBack} className="p-2">
-            <Ionicons name="chevron-back" size={24} color="#06B6D4" />
+            <Ionicons name="chevron-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-semibold font-comfortaa">
             Ring Duration
@@ -52,8 +52,8 @@ export default function RingDurationPage({ onBack }: RingDurationPageProps) {
                   }`}
                   onPress={() => {
                     setRingDurationMinutes(duration)
-                    onBack()
                   }}
+                  activeOpacity={0.7}
                 >
                   <View>
                     <Text className="text-white font-comfortaa text-base">
@@ -61,7 +61,11 @@ export default function RingDurationPage({ onBack }: RingDurationPageProps) {
                     </Text>
                   </View>
                   {ringDurationMinutes === duration && (
-                    <Ionicons name="checkmark" size={20} color="#06B6D4" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#10B981"
+                    />
                   )}
                 </TouchableOpacity>
               ))}

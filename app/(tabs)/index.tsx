@@ -1,14 +1,12 @@
 import { Button, Host } from '@expo/ui/swift-ui'
 import { LinearGradient } from 'expo-linear-gradient'
+import { router } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import AlarmSettings from '../../src/components/AlarmSettings'
 import CommonModal from '../../src/components/CommonModal'
-import RingDurationPage from '../../src/components/RingDurationPage'
 import ScrollPicker from '../../src/components/ScrollPicker'
-import SnoozeOptions from '../../src/components/SnoozeOptions'
-import SoundSelectionPage from '../../src/components/SoundSelectionPage'
 import { fonts } from '../../src/constants/theme'
 import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { useTheme } from '../../src/context/ThemeContext'
@@ -65,7 +63,6 @@ const WALK_GOAL_MINUTES = 60
 const WALK_GOAL_STEPS = 100
 const RULE_VERSION = 1
 
-type ArmPage = 'main' | 'sound' | 'snooze' | 'duration'
 
 type ArmedSession = {
   dateKey: string
@@ -98,7 +95,6 @@ export default function HomeScreen() {
   const [selectedMinute, setSelectedMinute] = useState(() =>
     new Date().getMinutes(),
   )
-  const [currentPage, setCurrentPage] = useState<ArmPage>('main')
   const [mode, setMode] = useState<SessionMode>('alarm')
   const armedSessionRef = useRef<ArmedSession | null>(null)
   const [modalConfig, setModalConfig] = useState<{
@@ -336,19 +332,6 @@ export default function HomeScreen() {
     }
   }, [walkSession])
 
-  // Navigation pages will handle their own state internally
-  if (currentPage === 'sound') {
-    return <SoundSelectionPage onBack={() => setCurrentPage('main')} />
-  }
-
-  if (currentPage === 'duration') {
-    return <RingDurationPage onBack={() => setCurrentPage('main')} />
-  }
-
-  if (currentPage === 'snooze') {
-    return <SnoozeOptions onBack={() => setCurrentPage('main')} />
-  }
-
   return (
     <LinearGradient
       colors={backgroundColors}
@@ -487,9 +470,9 @@ export default function HomeScreen() {
           {/* Alarm Settings Section */}
           <View className="mt-auto">
             <AlarmSettings
-              onSoundPress={() => setCurrentPage('sound')}
-              onDurationPress={() => setCurrentPage('duration')}
-              onSnoozePress={() => setCurrentPage('snooze')}
+              onSoundPress={() => router.push('/(modals)/sound')}
+              onDurationPress={() => router.push('/(modals)/duration')}
+              onSnoozePress={() => router.push('/(modals)/snooze')}
             />
           </View>
         </View>
