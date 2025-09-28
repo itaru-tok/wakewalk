@@ -73,8 +73,6 @@ export default function HybridLiquidGlassStatsScreen() {
         return theme.contribution.colors.perfect
       case 'fail':
         return theme.contribution.colors.missed
-      case 'future':
-      case 'empty':
       default:
         return theme.contribution.colors.empty
     }
@@ -233,7 +231,7 @@ export default function HybridLiquidGlassStatsScreen() {
             style={{ fontFamily: fonts.comfortaa.medium }}
           >
             Commits are earned by walking 100+ steps within 60 minutes of set
-            alarm time after stopping your alarm.
+            alarm time after alarm stops.
           </Text>
         </View>
 

@@ -36,7 +36,7 @@ const logWarn = (...args: Parameters<typeof console.warn>) => {
   }
 }
 
-export function useAlarmScheduler() {
+export function useAlarmScheduler(onAutoStop?: () => void) {
   const {
     ringDurationMinutes,
     selectedSoundId,
@@ -48,6 +48,12 @@ export function useAlarmScheduler() {
   } = useAlarmSettings()
 
   const [status, setStatus] = useState<AlarmStatus>('idle')
+  const statusRef = useRef<AlarmStatus>('idle')
+
+  // Update statusRef whenever status changes
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
   const scheduledNotificationIdRef = useRef<string | null>(null)
   // True while we intentionally stop/restart the native alarm to apply new settings.
@@ -403,10 +409,16 @@ export function useAlarmScheduler() {
         return
       }
 
+      const wasRinging = statusRef.current === 'ringing'
       cancelScheduledNotification().catch(() => {})
       setStatus('idle')
       setScheduledAt(null)
       setRemainingSnoozes(0)
+
+      // Trigger Wake Walk session when alarm auto-stops (no snooze left)
+      if (wasRinging && onAutoStop) {
+        onAutoStop()
+      }
     })
 
     const armedSub = alarmEventEmitter.addListener('AlarmArmed', (payload) => {
@@ -437,7 +449,12 @@ export function useAlarmScheduler() {
       armedSub.remove()
       errorSub.remove()
     }
-  }, [cancelScheduledNotification, clearSnoozeGuard, vibrationEnabled])
+  }, [
+    cancelScheduledNotification,
+    clearSnoozeGuard,
+    vibrationEnabled,
+    onAutoStop,
+  ])
 
   useEffect(() => {
     const receivedSub = Notifications.addNotificationReceivedListener(

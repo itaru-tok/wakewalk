@@ -1,8 +1,8 @@
 import { Button, Host } from '@expo/ui/swift-ui'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, StatusBar, Text, TouchableOpacity, View } from 'react-native'
+import { useEffect, useMemo, useState } from 'react'
+import { StatusBar, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import AlarmSettings from '../../src/components/AlarmSettings'
 import CommonModal from '../../src/components/CommonModal'
@@ -10,15 +10,10 @@ import ScrollPicker from '../../src/components/ScrollPicker'
 import { fonts } from '../../src/constants/theme'
 import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { useTheme } from '../../src/context/ThemeContext'
-import { useAlarmScheduler } from '../../src/hooks/useAlarmScheduler'
-import { useWakeWalkSession } from '../../src/hooks/useWakeWalkSession'
-import {
-  overwriteDailyOutcome,
-  type SessionMode,
-  upsertDailyOutcome,
-} from '../../src/storage/dailyOutcome'
+import { useAlarmHandler } from '../../src/hooks/useAlarmHandler'
+import type { SessionMode } from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
-import { addMinutes, formatClockTime, getDateKey } from '../../src/utils/time'
+import { formatClockTime } from '../../src/utils/time'
 
 function ActionButton({
   label,
@@ -59,31 +54,15 @@ function ActionButton({
 }
 
 const TAB_BAR_HEIGHT = 30
-const WALK_GOAL_MINUTES = 60
-const WALK_GOAL_STEPS = 100
-const RULE_VERSION = 1
-
-type ArmedSession = {
-  dateKey: string
-  target: Date
-  wakeGoal: Date
-  mode: SessionMode
-}
 
 const modeOptions: { label: string; value: SessionMode }[] = [
   { label: 'Sleep', value: 'alarm' },
   { label: 'Nap', value: 'nap' },
 ]
 
-const logError = (...args: Parameters<typeof console.error>) => {
-  if (__DEV__) {
-    console.error(...args)
-  }
-}
-
 export default function HomeScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
-  const { snoozeEnabled, snoozeDurationMinutes } = useAlarmSettings()
+  const { snoozeEnabled } = useAlarmSettings()
   const insets = useSafeAreaInsets()
   const bottomPadding = useMemo(
     () => insets.bottom + TAB_BAR_HEIGHT,
@@ -95,7 +74,6 @@ export default function HomeScreen() {
     new Date().getMinutes(),
   )
   const [mode, setMode] = useState<SessionMode>('alarm')
-  const armedSessionRef = useRef<ArmedSession | null>(null)
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean
     title: string
@@ -105,19 +83,15 @@ export default function HomeScreen() {
   }>({ visible: false, title: '', message: '' })
 
   const {
-    scheduleAlarm,
     scheduledAt,
     status,
     stopAlarm,
     snoozeAlarm,
     remainingSnoozes,
-  } = useAlarmScheduler()
-
-  const {
-    session: walkSession,
-    startTracking,
+    handleArm,
+    walkSession,
     resetSession,
-  } = useWakeWalkSession()
+  } = useAlarmHandler(selectedHour, selectedMinute, mode, setModalConfig)
 
   const hours = useMemo(
     () => Array.from({ length: 24 }, (_, i) => i.toString()),
@@ -131,153 +105,6 @@ export default function HomeScreen() {
   const scheduledTimeLabel = useMemo(() => {
     return scheduledAt ? formatClockTime(scheduledAt) : null
   }, [scheduledAt])
-
-  const handleArm = useCallback(async () => {
-    resetSession()
-    try {
-      const target = await scheduleAlarm(selectedHour, selectedMinute)
-      const wakeGoal = addMinutes(target, WALK_GOAL_MINUTES)
-      const dateKey = getDateKey(target)
-
-      armedSessionRef.current = {
-        dateKey,
-        target,
-        wakeGoal,
-        mode,
-      }
-
-      if (mode === 'alarm') {
-        await overwriteDailyOutcome(dateKey, {
-          dateKey,
-          mode: 'alarm',
-          alarmTime: target.toISOString(),
-          wakeGoalTime: wakeGoal.toISOString(),
-          goalSteps: WALK_GOAL_STEPS,
-          stopAt: null,
-          achievedAt: null,
-          stepsInWindow: 0,
-          ruleVersion: RULE_VERSION,
-        })
-      }
-
-      const infoLine =
-        mode === 'alarm'
-          ? `After it rings, tap Stop to start Wake Walk session.\nWalk 100 steps within 60 minutes of set alarm time to add to your commit graph.`
-          : `Wake Walk session doesn’t start in nap mode.`
-
-      const formattedTarget = formatClockTime(target)
-      const message =
-        mode === 'alarm'
-          ? `Alarm scheduled for ${formattedTarget}.\n\n${infoLine}`
-          : `Nap scheduled for ${formattedTarget}.\n\n${infoLine}`
-      Alert.alert(message)
-    } catch (error) {
-      logError('Failed to schedule alarm', error)
-      const message =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Please try again.'
-      Alert.alert('Failed to arm alarm', message)
-    }
-  }, [mode, resetSession, scheduleAlarm, selectedHour, selectedMinute])
-
-  const handleStopAlarm = useCallback(async () => {
-    const stopAt = new Date()
-    const armedSession = armedSessionRef.current
-    console.log('[AlarmScreen] stop pressed', { stopAt, armedSession })
-
-    try {
-      await stopAlarm()
-    } catch (error) {
-      logError('Failed to stop alarm', error)
-    }
-
-    if (!armedSession || armedSession.mode !== 'alarm') {
-      armedSessionRef.current = null
-      resetSession()
-      return
-    }
-
-    const { dateKey, wakeGoal, target } = armedSession
-
-    if (stopAt >= wakeGoal) {
-      await upsertDailyOutcome({
-        dateKey,
-        patch: {
-          mode: 'alarm',
-          alarmTime: target.toISOString(),
-          wakeGoalTime: wakeGoal.toISOString(),
-          goalSteps: WALK_GOAL_STEPS,
-          stopAt: stopAt.toISOString(),
-          achievedAt: null,
-          stepsInWindow: 0,
-          outcome: 'fail',
-          ruleVersion: RULE_VERSION,
-        },
-      })
-      setModalConfig({
-        visible: true,
-        title: 'Missed today',
-        message: 'Try tomorrow — you got this.',
-        subMessage: `0/${WALK_GOAL_STEPS} steps`,
-      })
-      armedSessionRef.current = null
-      resetSession()
-      return
-    }
-
-    await upsertDailyOutcome({
-      dateKey,
-      patch: {
-        mode: 'alarm',
-        alarmTime: target.toISOString(),
-        wakeGoalTime: wakeGoal.toISOString(),
-        goalSteps: WALK_GOAL_STEPS,
-        stopAt: stopAt.toISOString(),
-        achievedAt: null,
-        stepsInWindow: 0,
-        ruleVersion: RULE_VERSION,
-      },
-    })
-
-    try {
-      await startTracking({
-        dateKey,
-        stopAt,
-        wakeGoal,
-        goalSteps: WALK_GOAL_STEPS,
-      })
-    } catch (error) {
-      logError('Failed to start wake walk tracking', error)
-      setModalConfig({
-        visible: true,
-        title: 'Step tracking unavailable',
-        message: 'Please reopen the app after reinstalling the dev build.',
-      })
-      resetSession()
-    } finally {
-      armedSessionRef.current = null
-    }
-  }, [resetSession, startTracking, stopAlarm])
-
-  const handleSnoozeAlarm = useCallback(async () => {
-    try {
-      const next = await snoozeAlarm()
-      if (next) {
-        Alert.alert(
-          'Snoozed',
-          `Alarm snoozed for ${snoozeDurationMinutes} min. Next ring at around ${formatClockTime(next)}.`,
-        )
-      }
-    } catch (error) {
-      logError('Failed to snooze alarm', error)
-      const message =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Please try again.'
-      Alert.alert('Failed to snooze', message)
-    }
-  }, [snoozeAlarm, snoozeDurationMinutes])
 
   const backgroundColors = useMemo(() => {
     if (themeMode === 'color') {
@@ -298,33 +125,33 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!walkSession) return
 
-    if (walkSession.status === 'tracking') {
-      // Show progress modal while tracking
-      const remainingMinutes = Math.max(
-        0,
-        Math.floor(walkSession.remainingMs / 60000),
-      )
-      setModalConfig({
-        visible: true,
+    const baseConfig = {
+      visible: true,
+      subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
+    }
+
+    const configs = {
+      tracking: {
+        ...baseConfig,
         title: 'Wake Walk',
-        message: `Keep moving! ${remainingMinutes} minutes left`,
-        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
+        message: `Keep moving! ${Math.max(0, Math.floor(walkSession.remainingMs / 60000))} minutes left`,
         buttonText: 'Stop Tracking',
-      })
-    } else if (walkSession.status === 'success') {
-      setModalConfig({
-        visible: true,
+      },
+      success: {
+        ...baseConfig,
         title: 'Committed!',
         message: 'You hit your wake walk goal.',
-        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
-      })
-    } else if (walkSession.status === 'fail') {
-      setModalConfig({
-        visible: true,
+      },
+      fail: {
+        ...baseConfig,
         title: 'Missed today',
         message: 'Try tomorrow — you got this.',
-        subMessage: `${walkSession.steps}/${walkSession.goalSteps} steps`,
-      })
+      },
+    }
+
+    const config = configs[walkSession.status]
+    if (config) {
+      setModalConfig(config)
     }
   }, [walkSession])
 
@@ -428,21 +255,21 @@ export default function HomeScreen() {
                   <View className="flex-none">
                     <ActionButton
                       label="Stop"
-                      onPress={handleStopAlarm}
+                      onPress={stopAlarm}
                       size="compact"
                     />
                   </View>
                   <View className="flex-none">
                     <ActionButton
                       label={snoozeButtonLabel}
-                      onPress={handleSnoozeAlarm}
+                      onPress={snoozeAlarm}
                       size="compact"
                     />
                   </View>
                 </View>
               ) : (
                 <View className="mt-4">
-                  <ActionButton label="Stop" onPress={handleStopAlarm} />
+                  <ActionButton label="Stop" onPress={stopAlarm} />
                 </View>
               )
             ) : (
