@@ -73,7 +73,10 @@ export function useScrollPicker({
 
   useEffect(() => {
     if (!scrollRef.current || itemsLength === 0) return
-    if (lastRequestedIndexRef.current === targetIndex && hasInitializedRef.current)
+    if (
+      lastRequestedIndexRef.current === targetIndex &&
+      hasInitializedRef.current
+    )
       return
 
     lastRequestedIndexRef.current = targetIndex
@@ -97,14 +100,22 @@ export function useScrollPicker({
         return
       }
 
-      const rawIndex = Math.round(event.nativeEvent.contentOffset.y / itemHeight)
+      const rawIndex = Math.round(
+        event.nativeEvent.contentOffset.y / itemHeight,
+      )
       const normalizedIndex = normalizeIndex(rawIndex)
 
       if (normalizedIndex !== selectedNormalizedIndex) {
         onValueChange(normalizedIndex)
       }
     },
-    [itemHeight, itemsLength, normalizeIndex, onValueChange, selectedNormalizedIndex],
+    [
+      itemHeight,
+      itemsLength,
+      normalizeIndex,
+      onValueChange,
+      selectedNormalizedIndex,
+    ],
   )
 
   const getNormalizedIndex = useCallback(

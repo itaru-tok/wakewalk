@@ -53,11 +53,7 @@ export default {
         UNNotificationExtensionCategory: ['ALARM_CATEGORY'],
         NSMotionUsageDescription:
           'WakeWalk uses your motion activity to count wake-walk steps.',
-        UIBackgroundModes: [
-          'audio',
-          'fetch',
-          'remote-notification',
-        ],
+        UIBackgroundModes: ['audio', 'fetch', 'remote-notification'],
       },
     },
 

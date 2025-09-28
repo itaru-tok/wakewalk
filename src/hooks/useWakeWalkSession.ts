@@ -210,7 +210,7 @@ export function useWakeWalkSession() {
 
       runCheck()
     },
-    [finalizeSession, resetSession, runCheck],
+    [resetSession, runCheck],
   )
 
   useEffect(() => () => clearTimer(), [clearTimer])

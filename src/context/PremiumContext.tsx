@@ -42,8 +42,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     const customerInfoUpdateListener: CustomerInfoUpdateListener = (
       customerInfo,
     ) => {
-      const premiumStatus =
-        customerInfo.entitlements.active['Pro'] !== undefined
+      const premiumStatus = customerInfo.entitlements.active.Pro !== undefined
       console.log('Premium status updated:', premiumStatus)
       setIsPremium(premiumStatus)
     }

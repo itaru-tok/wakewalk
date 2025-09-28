@@ -1,7 +1,6 @@
 declare module 'expo-notifications' {
   export type Subscription = { remove: () => void }
 
-
   export type NotificationPermissionsStatus = {
     granted: boolean
     canAskAgain: boolean
@@ -63,7 +62,6 @@ declare module 'expo-notifications' {
     handleError?: (notificationId: string, error: Error) => void | Promise<void>
     handleSuccess?: (notificationId: string) => void | Promise<void>
   }): void
-
 
   export function setNotificationCategoryAsync(
     id: string,
