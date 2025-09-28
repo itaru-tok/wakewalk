@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { fonts } from '../constants/theme'
 import { useScrollPicker } from '../hooks/useScrollPicker'
@@ -25,30 +25,24 @@ export default function LiquidGlassScrollPicker({
     () => itemHeight * visibleCount,
     [itemHeight, visibleCount],
   )
-  const { scrollRef, data, normalizeIndex, initialScrollOffset } =
-    useScrollPicker(items, selectedIndex, cyclic, itemHeight)
+  const {
+    data,
+    handleMomentumScrollEnd,
+    scrollRef,
+    getNormalizedIndex,
+    selectedNormalizedIndex,
+    initialScrollOffset,
+  } = useScrollPicker({
+    items,
+    selectedIndex,
+    onValueChange,
+    cyclic,
+    itemHeight,
+  })
 
   const initialContentOffset = useMemo(
     () => ({ x: 0, y: initialScrollOffset }),
     [initialScrollOffset],
-  )
-
-  const handleMomentumScrollEnd = useCallback(
-    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
-      const rawIndex = Math.round(
-        event.nativeEvent.contentOffset.y / itemHeight,
-      )
-      const normalizedIndex = normalizeIndex(rawIndex)
-      if (normalizedIndex !== selectedIndex) {
-        onValueChange(normalizedIndex)
-      }
-    },
-    [itemHeight, normalizeIndex, onValueChange, selectedIndex],
-  )
-
-  const selectedNormalizedIndex = useMemo(
-    () => normalizeIndex(selectedIndex),
-    [normalizeIndex, selectedIndex],
   )
 
   return (
@@ -65,12 +59,12 @@ export default function LiquidGlassScrollPicker({
         onMomentumScrollEnd={handleMomentumScrollEnd}
       >
         {data.map((item, index) => {
-          const normalizedIndex = normalizeIndex(index)
+          const normalizedIndex = getNormalizedIndex(index)
           const isSelected = normalizedIndex === selectedNormalizedIndex
 
           return (
             <View
-              key={`scroll-item-${index}-${item}`}
+              key={`scroll-item-${index}`}
               style={{
                 height: itemHeight,
                 justifyContent: 'center',

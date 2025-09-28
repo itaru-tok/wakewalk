@@ -3,74 +3,121 @@ import type { ScrollView } from 'react-native'
 
 const REPEAT_MULTIPLIER = 100
 
-export function useScrollPicker(
-  items: string[],
-  selectedIndex: number,
-  cyclic: boolean,
-  itemHeight: number,
-) {
+interface ScrollPickerOptions {
+  items: string[]
+  selectedIndex: number
+  onValueChange: (index: number) => void
+  cyclic: boolean
+  itemHeight: number
+}
+
+export function useScrollPicker({
+  items,
+  selectedIndex,
+  onValueChange,
+  cyclic,
+  itemHeight,
+}: ScrollPickerOptions) {
   const scrollRef = useRef<ScrollView | null>(null)
-  const hasInitialScrollRef = useRef(false)
+  const hasInitializedRef = useRef(false)
+  const suppressMomentumRef = useRef(false)
+  const lastRequestedIndexRef = useRef<number | null>(null)
   const initialOffsetRef = useRef<number | null>(null)
 
-  const data = useMemo(() => {
-    if (!cyclic) return items
-    const repeated: string[] = []
-    for (let i = 0; i < REPEAT_MULTIPLIER; i += 1) {
-      repeated.push(...items)
-    }
-    return repeated
-  }, [cyclic, items])
+  const itemsLength = items.length
 
   const normalizeIndex = useCallback(
     (index: number) => {
-      const length = items.length
-      if (length === 0) return 0
+      if (itemsLength === 0) return 0
       if (!cyclic) {
         if (index < 0) return 0
-        if (index >= length) return length - 1
+        if (index >= itemsLength) return itemsLength - 1
         return index
       }
-      const modulo = index % length
-      return modulo < 0 ? modulo + length : modulo
+      const modulo = index % itemsLength
+      return modulo < 0 ? modulo + itemsLength : modulo
     },
-    [cyclic, items.length],
+    [cyclic, itemsLength],
   )
 
-  const getCenterIndexForSelected = useCallback(() => {
-    if (!cyclic) return normalizeIndex(selectedIndex)
-    const midpoint = Math.floor((REPEAT_MULTIPLIER * items.length) / 2)
-    return midpoint + normalizeIndex(selectedIndex)
-  }, [cyclic, items.length, normalizeIndex, selectedIndex])
+  const selectedNormalizedIndex = useMemo(
+    () => normalizeIndex(selectedIndex),
+    [normalizeIndex, selectedIndex],
+  )
+
+  const data = useMemo(() => {
+    if (itemsLength === 0) return [] as string[]
+    if (!cyclic) return items
+
+    const total = itemsLength * REPEAT_MULTIPLIER
+    const repeated: string[] = new Array(total)
+    for (let i = 0; i < total; i += 1) {
+      repeated[i] = items[i % itemsLength]
+    }
+    return repeated
+  }, [cyclic, items, itemsLength])
+
+  const targetIndex = useMemo(() => {
+    if (itemsLength === 0) return 0
+    if (!cyclic) return selectedNormalizedIndex
+
+    const cycleStart = Math.floor(REPEAT_MULTIPLIER / 2) * itemsLength
+    return cycleStart + selectedNormalizedIndex
+  }, [cyclic, itemsLength, selectedNormalizedIndex])
+
+  const currentTargetOffset = targetIndex * itemHeight
 
   if (initialOffsetRef.current === null) {
-    const centerIndex = getCenterIndexForSelected()
-    initialOffsetRef.current = centerIndex * itemHeight
+    initialOffsetRef.current = currentTargetOffset
   }
 
-  const scrollToIndex = useCallback(
-    (index: number, animated: boolean) => {
-      if (!scrollRef.current) return
-      scrollRef.current.scrollTo({ y: index * itemHeight, animated })
-    },
-    [itemHeight],
-  )
-
   useEffect(() => {
-    if (!scrollRef.current || items.length === 0) return
-    const targetIndex = getCenterIndexForSelected()
-    if (!hasInitialScrollRef.current) {
-      hasInitialScrollRef.current = true
-      scrollToIndex(targetIndex, false)
+    if (!scrollRef.current || itemsLength === 0) return
+    if (lastRequestedIndexRef.current === targetIndex && hasInitializedRef.current)
+      return
+
+    lastRequestedIndexRef.current = targetIndex
+
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true
+      scrollRef.current.scrollTo({ y: currentTargetOffset, animated: false })
       return
     }
-    scrollToIndex(targetIndex, true)
-  }, [getCenterIndexForSelected, items.length, scrollToIndex])
+
+    suppressMomentumRef.current = true
+    scrollRef.current.scrollTo({ y: currentTargetOffset, animated: true })
+  }, [currentTargetOffset, itemsLength, targetIndex])
+
+  const handleMomentumScrollEnd = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      if (itemsLength === 0) return
+
+      if (suppressMomentumRef.current) {
+        suppressMomentumRef.current = false
+        return
+      }
+
+      const rawIndex = Math.round(event.nativeEvent.contentOffset.y / itemHeight)
+      const normalizedIndex = normalizeIndex(rawIndex)
+
+      if (normalizedIndex !== selectedNormalizedIndex) {
+        onValueChange(normalizedIndex)
+      }
+    },
+    [itemHeight, itemsLength, normalizeIndex, onValueChange, selectedNormalizedIndex],
+  )
+
+  const getNormalizedIndex = useCallback(
+    (index: number) => normalizeIndex(index),
+    [normalizeIndex],
+  )
 
   return {
-    scrollRef,
     data,
-    normalizeIndex,
+    handleMomentumScrollEnd,
+    scrollRef,
+    getNormalizedIndex,
+    selectedNormalizedIndex,
     initialScrollOffset: initialOffsetRef.current ?? 0,
   }
 }
