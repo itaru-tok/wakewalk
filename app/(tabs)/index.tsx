@@ -134,7 +134,6 @@ export default function HomeScreen() {
       tracking: {
         ...baseConfig,
         title: 'Wake Walk',
-        // TODO: keep updating remaining time
         message: `Keep moving! ${Math.max(0, Math.floor(walkSession.remainingMs / 60000))} minutes left`,
         buttonText: 'Stop Tracking',
       },

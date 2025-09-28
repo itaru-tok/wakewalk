@@ -112,7 +112,7 @@ export default function HybridLiquidGlassStatsScreen() {
 
         <View className="bg-white/10 rounded-2xl p-4">
           <View className="flex-row">
-            <View className="mr-2.5 mt-7 pr-1">
+            <View className="mr-2 mt-8">
               {getDayLabels()
                 .filter((_, i) => i % 2 === 1)
                 .map((label, index) => (
@@ -121,7 +121,7 @@ export default function HybridLiquidGlassStatsScreen() {
                     className="justify-center"
                     style={{
                       height: (CELL_SIZE + CELL_MARGIN) * 2,
-                      marginTop: index === 0 ? 0 : -CELL_MARGIN,
+                      marginTop: index === 0 ? 0 : -CELL_MARGIN + 3,
                     }}
                   >
                     <Text
@@ -149,7 +149,7 @@ export default function HybridLiquidGlassStatsScreen() {
                     style={{ marginRight: CELL_MARGIN }}
                   >
                     <Text
-                      className="text-sm text-white/70 mb-2"
+                      className="text-sm text-white/70 mb-1"
                       style={{ fontFamily: fonts.comfortaa.medium }}
                     >
                       {getMonthName(monthData.month)}
