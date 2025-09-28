@@ -134,6 +134,7 @@ export default function HomeScreen() {
       tracking: {
         ...baseConfig,
         title: 'Wake Walk',
+        // TODO: keep updating remaining time
         message: `Keep moving! ${Math.max(0, Math.floor(walkSession.remainingMs / 60000))} minutes left`,
         buttonText: 'Stop Tracking',
       },
@@ -185,6 +186,7 @@ export default function HomeScreen() {
                 className="absolute left-16 right-16 top-1/2 -translate-y-1/2 h-[70px] rounded-[35px] border border-white/25 bg-white/10"
               />
               <View className="flex-1 max-w-[100px]">
+                {/* TODO: fix the slow behavior of the picker */}
                 <ScrollPicker
                   items={hours}
                   selectedIndex={selectedHour}
@@ -274,6 +276,7 @@ export default function HomeScreen() {
               )
             ) : (
               <View className="mt-4">
+                {/* // TODO: prevent key mashing by sleep */}
                 <ActionButton
                   label={mode === 'alarm' ? 'Sleep' : 'Nap'}
                   onPress={handleArm}
