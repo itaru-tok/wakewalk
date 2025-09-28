@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import * as Notifications from 'expo-notifications'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Platform } from 'react-native'
 import { SOUND_FILE_MAP } from '../constants/sounds'
 import {
   DEFAULT_SOUND_ID,
@@ -14,7 +13,6 @@ import {
 } from '../native/AlarmNativeModule'
 import {
   ALARM_CATEGORY,
-  ALARM_CHANNEL,
   ALARM_STOP_ACTION_ID,
   ensureNotificationSetup,
 } from '../utils/notifications'
@@ -133,12 +131,10 @@ export function useAlarmScheduler() {
 
   const stopAlarm = useCallback(async () => {
     await cancelScheduledNotification()
-    if (Platform.OS === 'ios') {
-      try {
-        stopNativeAlarm()
-      } catch (error) {
-        logError('Failed to stop native alarm', error)
-      }
+    try {
+      stopNativeAlarm()
+    } catch (error) {
+      logError('Failed to stop native alarm', error)
     }
     setScheduledAt(null)
     setStatus('idle')
@@ -172,10 +168,9 @@ export function useAlarmScheduler() {
         timeUntil = scheduledTarget.getTime() - now
       }
 
-      const trigger: Notifications.NotificationTriggerInput =
-        Platform.OS === 'android'
-          ? { date: scheduledTarget, channelId: ALARM_CHANNEL }
-          : { date: scheduledTarget }
+      const trigger: Notifications.NotificationTriggerInput = {
+        date: scheduledTarget,
+      }
 
       const notificationContent: Notifications.NotificationContent = {
         title: 'Alarm',
@@ -198,26 +193,20 @@ export function useAlarmScheduler() {
         throw error
       }
 
-      if (Platform.OS === 'ios') {
-        try {
-          startNativeAlarm(
-            scheduledTarget,
-            soundFileName,
-            ringDurationMinutes,
-            vibrationEnabled,
-            soundEnabled,
-          )
-        } catch (error) {
-          logError('Failed to start native alarm', error)
-          if (scheduled) {
-            await cancelScheduledNotification().catch(() => {})
-          }
-          throw error
-        }
-      } else {
-        logWarn(
-          'Native alarm playback is only supported on iOS. Scheduled notification only.',
+      try {
+        startNativeAlarm(
+          scheduledTarget,
+          soundFileName,
+          ringDurationMinutes,
+          vibrationEnabled,
+          soundEnabled,
         )
+      } catch (error) {
+        logError('Failed to start native alarm', error)
+        if (scheduled) {
+          await cancelScheduledNotification().catch(() => {})
+        }
+        throw error
       }
 
       setScheduledAt(new Date(scheduledTarget))
@@ -280,7 +269,7 @@ export function useAlarmScheduler() {
 
     await cancelScheduledNotification().catch(() => {})
 
-    const snoozeGuard = Platform.OS === 'ios' ? createSnoozeGuard() : null
+    const snoozeGuard = createSnoozeGuard()
 
     if (snoozeGuard) {
       // Keep ignoring AlarmStopped until the native stop acknowledgement drains.
@@ -288,12 +277,10 @@ export function useAlarmScheduler() {
     }
 
     try {
-      if (Platform.OS === 'ios') {
-        try {
-          stopNativeAlarm()
-        } catch (error) {
-          logError('Failed to stop native alarm before snooze', error)
-        }
+      try {
+        stopNativeAlarm()
+      } catch (error) {
+        logError('Failed to stop native alarm before snooze', error)
       }
     } finally {
       setScheduledAt(null)
@@ -308,9 +295,7 @@ export function useAlarmScheduler() {
       logError('Failed to schedule snoozed alarm', error)
       throw error
     } finally {
-      if (Platform.OS === 'ios') {
-        adjustingNativeAlarmRef.current = false
-      }
+      adjustingNativeAlarmRef.current = false
     }
 
     return nextTarget
@@ -351,23 +336,19 @@ export function useAlarmScheduler() {
             return
           }
 
-          if (Platform.OS === 'ios') {
-            // Flag this stop as internal so AlarmStopped does not reset state.
-            adjustingNativeAlarmRef.current = true
-            try {
-              stopNativeAlarm()
-            } catch (error) {
-              logError(
-                'Failed to stop native alarm before updating settings',
-                error,
-              )
-            }
+          // Flag this stop as internal so AlarmStopped does not reset state.
+          adjustingNativeAlarmRef.current = true
+          try {
+            stopNativeAlarm()
+          } catch (error) {
+            logError(
+              'Failed to stop native alarm before updating settings',
+              error,
+            )
           }
 
           if (!isActive) {
-            if (Platform.OS === 'ios') {
-              adjustingNativeAlarmRef.current = false
-            }
+            adjustingNativeAlarmRef.current = false
             return
           }
 
@@ -376,9 +357,7 @@ export function useAlarmScheduler() {
           } catch (error) {
             logError('Failed to apply updated alarm settings', error)
           } finally {
-            if (Platform.OS === 'ios') {
-              adjustingNativeAlarmRef.current = false
-            }
+            adjustingNativeAlarmRef.current = false
           }
         })
 
@@ -394,8 +373,6 @@ export function useAlarmScheduler() {
   }, [armAlarmForTarget, cancelScheduledNotification, status])
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') return
-
     const triggeredSub = alarmEventEmitter.addListener(
       'AlarmTriggered',
       async () => {
@@ -460,13 +437,7 @@ export function useAlarmScheduler() {
       armedSub.remove()
       errorSub.remove()
     }
-  }, [
-    cancelScheduledNotification,
-    clearSnoozeGuard,
-    vibrationEnabled,
-    snoozeEnabled,
-    snoozeRepeatCount,
-  ])
+  }, [cancelScheduledNotification, clearSnoozeGuard, vibrationEnabled])
 
   useEffect(() => {
     const receivedSub = Notifications.addNotificationReceivedListener(
@@ -498,7 +469,7 @@ export function useAlarmScheduler() {
       receivedSub.remove()
       responseSub.remove()
     }
-  }, [stopAlarm, snoozeEnabled, snoozeRepeatCount])
+  }, [stopAlarm])
 
   useEffect(() => {
     ensureNotificationSetup()?.catch(() => {})

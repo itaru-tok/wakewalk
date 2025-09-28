@@ -1,5 +1,5 @@
 import type { NativeModule } from 'react-native'
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native'
+import { NativeEventEmitter, NativeModules } from 'react-native'
 
 const LINKING_ERROR =
   'AlarmManager native module is not linked. Rebuild the iOS app after adding the native implementation.'
@@ -22,11 +22,9 @@ type AlarmManagerModule = {
 }
 
 const alarmModule: AlarmManagerModule | undefined =
-  Platform.OS === 'ios'
-    ? (NativeModules.AlarmManager as AlarmManagerModule | undefined)
-    : undefined
+  NativeModules.AlarmManager as AlarmManagerModule | undefined
 
-if (Platform.OS === 'ios' && !alarmModule) {
+if (!alarmModule) {
   logWarn(
     `${LINKING_ERROR} If you recently added the module, rebuild and reinstall the iOS dev client.`,
   )

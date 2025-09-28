@@ -1,19 +1,6 @@
 declare module 'expo-notifications' {
   export type Subscription = { remove: () => void }
 
-  export enum AndroidImportance {
-    MIN = 1,
-    LOW = 2,
-    DEFAULT = 3,
-    HIGH = 4,
-    MAX = 5,
-  }
-
-  export enum AndroidNotificationVisibility {
-    SECRET = -1,
-    PRIVATE = 0,
-    PUBLIC = 1,
-  }
 
   export type NotificationPermissionsStatus = {
     granted: boolean
@@ -32,12 +19,10 @@ declare module 'expo-notifications' {
   export type NotificationTriggerInput =
     | {
         date: Date | number
-        channelId?: string
       }
     | {
         seconds: number
         repeats?: boolean
-        channelId?: string
       }
 
   export type Notification = {
@@ -79,18 +64,6 @@ declare module 'expo-notifications' {
     handleSuccess?: (notificationId: string) => void | Promise<void>
   }): void
 
-  export function setNotificationChannelAsync(
-    id: string,
-    channel: {
-      name: string
-      importance?: AndroidImportance
-      sound?: string | null
-      enableVibrate?: boolean
-      vibrationPattern?: number[]
-      bypassDnd?: boolean
-      lockscreenVisibility?: AndroidNotificationVisibility
-    },
-  ): Promise<void>
 
   export function setNotificationCategoryAsync(
     id: string,
