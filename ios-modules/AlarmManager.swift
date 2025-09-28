@@ -83,9 +83,17 @@ class AlarmManager: RCTEventEmitter {
   }
 
   private func startSilentLoop() {
-    guard silentPlayer == nil, let url = audioURL(for: "silence-loop.wav"),
-          let player = try? AVAudioPlayer(contentsOf: url) else {
-      sendEvent(withName: "AlarmError", body: ["message": "Missing silence asset"])
+    guard silentPlayer == nil else { return }
+
+    guard let url = audioURL(for: "silence-loop.wav") else {
+      print("[AlarmManager] Failed to find silence-loop.wav in bundle")
+      // Don't send error event - this is not critical for alarm functionality
+      // Vibration will still work without the silent loop
+      return
+    }
+
+    guard let player = try? AVAudioPlayer(contentsOf: url) else {
+      print("[AlarmManager] Failed to create player for silence-loop.wav")
       return
     }
 

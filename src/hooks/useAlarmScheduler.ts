@@ -95,9 +95,12 @@ export function useAlarmScheduler() {
     remainingSnoozesRef.current = remainingSnoozes
   }, [remainingSnoozes])
 
-  useEffect(() => () => {
-    clearSnoozeGuard()
-  }, [clearSnoozeGuard])
+  useEffect(
+    () => () => {
+      clearSnoozeGuard()
+    },
+    [clearSnoozeGuard],
+  )
 
   useEffect(() => {
     if (!snoozeEnabled) {
@@ -249,7 +252,8 @@ export function useAlarmScheduler() {
       const target = computeTarget()
 
       const armedAt = await armAlarmForTarget(target)
-      setRemainingSnoozes(snoozeEnabled ? snoozeRepeatCount : 0)
+      const initialSnoozes = snoozeEnabled ? snoozeRepeatCount : 0
+      setRemainingSnoozes(initialSnoozes)
       return armedAt
     },
     [
@@ -439,9 +443,15 @@ export function useAlarmScheduler() {
       if (__DEV__) {
         logError('Alarm error', payload)
       }
-      setStatus('idle')
-      setScheduledAt(null)
-      setRemainingSnoozes(0)
+      // Don't reset state for non-critical errors like missing silence asset
+      // which happens during normal alarm triggering
+      // TODO: revise this logic without using includes('silence')
+      const isCriticalError = !payload?.message?.includes('silence')
+      if (isCriticalError) {
+        setStatus('idle')
+        setScheduledAt(null)
+        setRemainingSnoozes(0)
+      }
     })
 
     return () => {
@@ -450,7 +460,13 @@ export function useAlarmScheduler() {
       armedSub.remove()
       errorSub.remove()
     }
-  }, [cancelScheduledNotification, clearSnoozeGuard, vibrationEnabled])
+  }, [
+    cancelScheduledNotification,
+    clearSnoozeGuard,
+    vibrationEnabled,
+    snoozeEnabled,
+    snoozeRepeatCount,
+  ])
 
   useEffect(() => {
     const receivedSub = Notifications.addNotificationReceivedListener(
@@ -482,7 +498,7 @@ export function useAlarmScheduler() {
       receivedSub.remove()
       responseSub.remove()
     }
-  }, [stopAlarm])
+  }, [stopAlarm, snoozeEnabled, snoozeRepeatCount])
 
   useEffect(() => {
     ensureNotificationSetup()?.catch(() => {})

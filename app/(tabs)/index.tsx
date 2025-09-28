@@ -63,7 +63,6 @@ const WALK_GOAL_MINUTES = 60
 const WALK_GOAL_STEPS = 100
 const RULE_VERSION = 1
 
-
 type ArmedSession = {
   dateKey: string
   target: Date
@@ -293,10 +292,7 @@ export default function HomeScreen() {
 
   const isRinging = status === 'ringing'
   const canSnooze = snoozeEnabled && remainingSnoozes > 0 && isRinging
-  const snoozeButtonLabel =
-    remainingSnoozes === 1
-      ? 'Snooze (1 left)'
-      : `Snooze (${remainingSnoozes} left)`
+  const snoozeButtonLabel = `Snooze (${remainingSnoozes} left)`
 
   // Watch for walk session changes
   useEffect(() => {
