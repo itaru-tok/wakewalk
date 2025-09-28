@@ -21,6 +21,11 @@ import {
 
 type AlarmStatus = 'idle' | 'armed' | 'ringing'
 
+type SnoozeGuard = {
+  token: symbol
+  timeoutId: ReturnType<typeof setTimeout> | null
+}
+
 const logError = (...args: Parameters<typeof console.error>) => {
   if (__DEV__) {
     console.error(...args)
@@ -49,10 +54,33 @@ export function useAlarmScheduler() {
   const scheduledNotificationIdRef = useRef<string | null>(null)
   // True while we intentionally stop/restart the native alarm to apply new settings.
   const adjustingNativeAlarmRef = useRef(false)
+  const snoozeGuardRef = useRef<SnoozeGuard | null>(null)
   const scheduledAtRef = useRef<Date | null>(null)
   const settingsUpdatePromiseRef = useRef<Promise<void> | null>(null)
   const [remainingSnoozes, setRemainingSnoozes] = useState(0)
   const remainingSnoozesRef = useRef(0)
+
+  const clearSnoozeGuard = useCallback(() => {
+    const guard = snoozeGuardRef.current
+    if (!guard) return
+    if (guard.timeoutId) {
+      clearTimeout(guard.timeoutId)
+    }
+    snoozeGuardRef.current = null
+  }, [])
+
+  const createSnoozeGuard = useCallback((): SnoozeGuard => {
+    // Guard the window between stopping the current alarm and arming the snooze so
+    // the synthetic AlarmStopped event from native does not cancel the new schedule.
+    const guard: SnoozeGuard = { token: Symbol('snooze'), timeoutId: null }
+    guard.timeoutId = setTimeout(() => {
+      if (snoozeGuardRef.current?.token === guard.token) {
+        snoozeGuardRef.current = null
+      }
+    }, 5000)
+    snoozeGuardRef.current = guard
+    return guard
+  }, [])
 
   const soundFileName = useMemo(
     () => SOUND_FILE_MAP[selectedSoundId] ?? SOUND_FILE_MAP[DEFAULT_SOUND_ID],
@@ -66,6 +94,10 @@ export function useAlarmScheduler() {
   useEffect(() => {
     remainingSnoozesRef.current = remainingSnoozes
   }, [remainingSnoozes])
+
+  useEffect(() => () => {
+    clearSnoozeGuard()
+  }, [clearSnoozeGuard])
 
   useEffect(() => {
     if (!snoozeEnabled) {
@@ -124,16 +156,29 @@ export function useAlarmScheduler() {
 
   const armAlarmForTarget = useCallback(
     async (target: Date): Promise<Date> => {
+      const now = Date.now()
+      let scheduledTarget = new Date(target)
+      let timeUntil = scheduledTarget.getTime() - now
+
+      if (timeUntil <= 0) {
+        scheduledTarget = new Date(now + 60 * 1000)
+        scheduledTarget.setSeconds(0, 0)
+        timeUntil = scheduledTarget.getTime() - now
+      } else if (timeUntil < 1000) {
+        scheduledTarget = new Date(scheduledTarget.getTime() + 1000 - timeUntil)
+        timeUntil = scheduledTarget.getTime() - now
+      }
+
       const trigger: Notifications.NotificationTriggerInput =
         Platform.OS === 'android'
-          ? { date: target, channelId: ALARM_CHANNEL }
-          : { date: target }
+          ? { date: scheduledTarget, channelId: ALARM_CHANNEL }
+          : { date: scheduledTarget }
 
       const notificationContent: Notifications.NotificationContent = {
         title: 'Alarm',
         body: 'Time to wake up!',
         categoryIdentifier: ALARM_CATEGORY,
-        data: { scheduledAt: target.toISOString() },
+        data: { scheduledAt: scheduledTarget.toISOString() },
         sound: soundEnabled ? 'default' : null,
       }
 
@@ -153,7 +198,7 @@ export function useAlarmScheduler() {
       if (Platform.OS === 'ios') {
         try {
           startNativeAlarm(
-            target,
+            scheduledTarget,
             soundFileName,
             ringDurationMinutes,
             vibrationEnabled,
@@ -172,9 +217,9 @@ export function useAlarmScheduler() {
         )
       }
 
-      setScheduledAt(new Date(target))
+      setScheduledAt(new Date(scheduledTarget))
       setStatus('armed')
-      return target
+      return scheduledTarget
     },
     [
       cancelScheduledNotification,
@@ -231,17 +276,25 @@ export function useAlarmScheduler() {
 
     await cancelScheduledNotification().catch(() => {})
 
-    if (Platform.OS === 'ios') {
+    const snoozeGuard = Platform.OS === 'ios' ? createSnoozeGuard() : null
+
+    if (snoozeGuard) {
+      // Keep ignoring AlarmStopped until the native stop acknowledgement drains.
       adjustingNativeAlarmRef.current = true
-      try {
-        stopNativeAlarm()
-      } catch (error) {
-        logError('Failed to stop native alarm before snooze', error)
-      }
     }
 
-    setScheduledAt(null)
-    setStatus('idle')
+    try {
+      if (Platform.OS === 'ios') {
+        try {
+          stopNativeAlarm()
+        } catch (error) {
+          logError('Failed to stop native alarm before snooze', error)
+        }
+      }
+    } finally {
+      setScheduledAt(null)
+      setStatus('idle')
+    }
 
     try {
       await ensureNotificationSetup()
@@ -260,6 +313,7 @@ export function useAlarmScheduler() {
   }, [
     armAlarmForTarget,
     cancelScheduledNotification,
+    createSnoozeGuard,
     snoozeDurationMinutes,
     snoozeEnabled,
   ])
@@ -357,10 +411,17 @@ export function useAlarmScheduler() {
     )
 
     const stoppedSub = alarmEventEmitter.addListener('AlarmStopped', () => {
-      // Ignore synthetic stops that happen during setting adjustments.
+      // Ignore synthetic stops that happen during setting adjustments or the snooze pipeline.
       if (adjustingNativeAlarmRef.current) {
         return
       }
+
+      if (snoozeGuardRef.current) {
+        // Snooze hand-off still in progress; ignore this stop signal.
+        clearSnoozeGuard()
+        return
+      }
+
       cancelScheduledNotification().catch(() => {})
       setStatus('idle')
       setScheduledAt(null)
@@ -389,7 +450,7 @@ export function useAlarmScheduler() {
       armedSub.remove()
       errorSub.remove()
     }
-  }, [cancelScheduledNotification, vibrationEnabled])
+  }, [cancelScheduledNotification, clearSnoozeGuard, vibrationEnabled])
 
   useEffect(() => {
     const receivedSub = Notifications.addNotificationReceivedListener(
