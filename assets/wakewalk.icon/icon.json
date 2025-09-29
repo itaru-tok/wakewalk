@@ -4,9 +4,9 @@
     {
       "layers": [
         {
-          "glass": true,
-          "image-name": "wakewalk-icon.png",
-          "name": "wakewalk-icon"
+          "glass": false,
+          "image-name": "icon-1759136341701-2 2.png",
+          "name": "icon-1759136341701-2 2"
         }
       ],
       "shadow": {
