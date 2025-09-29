@@ -234,6 +234,10 @@ The app uses Expo's configuration system. Key configuration files:
 
 See `docs/AGENTS.md` for detailed development guidelines.
 
+## Bug
+・Killing app resets all settings...
+・After missing alarm, and open the app it has still scheduled time and won't show wake walk session.
+
 ## 📄 License
 
 This project is licensed under the MIT License.
