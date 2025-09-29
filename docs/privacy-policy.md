@@ -13,56 +13,63 @@ WakeWalk ("we", "our", or "us") is committed to protecting your privacy. This Pr
 - **Usage Data**: Wake-up times, walking sessions, and step counts
 
 ### Information Automatically Collected
-- **Device Information**: Device type, operating system version, unique device identifiers
-- **Motion & Fitness Data**: Step count and motion activity data (with your permission)
-- **Analytics Data**: App usage patterns, feature interactions, and performance data
+- **Device Information**: Device type, operating system version, and identifiers needed to keep the service secure
+- **Motion & Fitness Data**: Step count and motion activity data used only to measure WakeWalk sessions (collected **only** after you grant Motion & Fitness permission)
+- **Analytics Data**: Aggregated app usage patterns, feature interactions, and performance diagnostics (no health data is included)
 
 ### Advertising Information
-We use Google AdMob to display advertisements. AdMob may collect:
+We use Google AdMob to display advertisements. For that purpose AdMob, acting as an independent controller, may collect:
 - Advertising ID
-- IP address
+- IP address and rough location
 - Device information
 - Ad interaction data
+We do **not** send Motion & Fitness (health) data to AdMob or other advertisers.
 
 ## How We Use Your Information
 
 We use the collected information to:
 - Provide and maintain the WakeWalk service
-- Track your wake-walk progress and statistics
-- Display personalized achievements and progress
+- Track your wake-walk progress and statistics based on the step count you authorise us to read
+- Display personalized achievements and progress inside the app
 - Improve app functionality and user experience
-- Display relevant advertisements through AdMob
-- Analyze app performance and fix bugs
+- Display relevant advertisements through AdMob (without sharing Motion & Fitness data)
+- Analyse app performance and fix bugs
 
 ## Data Storage
 
-- Your wake-walk data is stored locally on your device
-- Profile and achievement data may be synced with cloud services if you choose to enable this feature
-- We do not sell, trade, or transfer your personal information to third parties
+- Your alarm schedule, wake-walk sessions, and step progress are stored locally on your device. Deleting the app, clearing the app's storage from the operating system settings, or following our deletion instructions (see "Your Rights") will remove this data.
+- If we introduce optional cloud sync in the future, we will present a separate opt-in screen describing the data flow before any information leaves your device.
+- We do not sell, trade, or transfer your personal information to third parties. Limited device/advertising identifiers are shared with Google AdMob solely for ad delivery as described above.
+
+## Data Retention
+
+- Motion & Fitness data used in WakeWalk is sampled on-device and kept only as long as you keep the app installed or until you remove the app's data.
 
 ## Third-Party Services
 
 ### Google AdMob
-We use Google AdMob for advertising. AdMob may use cookies and similar technologies to collect information for advertising purposes. You can learn more about Google's privacy practices at: https://policies.google.com/privacy
+We use Google AdMob for advertising. AdMob may use cookies or similar technologies to collect information for advertising and frequency capping. You can learn more about Google's privacy practices at: https://policies.google.com/privacy. You can opt out of personalised ads by adjusting your ad settings on your device (Settings ▸ Privacy & Security ▸ Apple Advertising / Google Services) or by contacting us as described below.
 
 ### App Tracking Transparency (iOS)
-On iOS 14.5+, we will request your permission to track your activity across other companies' apps and websites for advertising purposes. You can change this permission at any time in your device settings.
+On iOS 14.5+, we request your permission before accessing the device's advertising identifier. You can change this permission at any time via **Settings ▸ Privacy & Security ▸ Tracking ▸ WakeWalk**.
 
 ## Children's Privacy
 
-WakeWalk is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
+WakeWalk is not intended for children. We do not knowingly collect personal information from individuals who are not permitted to use Motion & Fitness data under applicable law, and the app will refuse Motion & Fitness permissions if the operating system reports a restricted profile.
 
 ## Your Rights
 
 You have the right to:
-- Access your personal data
-- Request deletion of your data
-- Opt-out of personalized advertising
-- Withdraw consent for data processing
+- Access the personal data we hold about you
+- Request deletion of your data (including instructions on how to delete local data)
+- Opt-out of personalised advertising
+- Withdraw consent for data processing (such as Motion & Fitness permissions)
+
+To exercise any of these rights, contact us at **itaruo93oo@gmail.com**. We will respond within 5 days and provide instructions (for example, how to revoke Motion & Fitness access in your device settings or how to delete local data).
 
 ## Data Security
 
-We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+We implement appropriate technical and organisational measures to protect your personal information against unauthorised access, alteration, disclosure, or destruction. Motion & Fitness data is processed on-device and is never transmitted to our servers or ad partners.
 
 ## Changes to This Privacy Policy
 
