@@ -20,6 +20,7 @@
     "eas:build:preview:ios": "eas build --platform ios --profile preview",
     "eas:build:production:ios": "eas build --platform ios --profile production",
     "eas:submit:ios": "eas submit --platform ios",
+    "eas:build:production:ios:auto-submit": "eas build --platform ios --profile production --auto-submit",
     "prebuild:ios": "npx expo prebuild -p ios"
   },
   "dependencies": {

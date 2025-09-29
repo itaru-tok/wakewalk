@@ -4,6 +4,7 @@ export default {
   expo: {
     name: 'WakeWalk',
     slug: 'wakewalk',
+    version: '1.0.0',
     owner: 'itaruo93o',
     scheme: 'wakewalk',
     userInterfaceStyle: 'automatic',

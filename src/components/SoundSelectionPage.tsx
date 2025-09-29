@@ -94,6 +94,7 @@ export default function SoundSelectionPage({
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <TouchableOpacity onPress={onBack} className="p-2">
+            {/* TODO: update to liquid glass icon */}
             <Ionicons name="chevron-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-semibold font-comfortaa">
