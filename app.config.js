@@ -62,6 +62,7 @@ export default {
 
     ios: {
       bundleIdentifier: 'com.itaruo93o.wakewalk',
+      supportsTablet: false,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         UNNotificationExtensionCategory: ['ALARM_CATEGORY'],
