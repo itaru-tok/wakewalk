@@ -41,6 +41,19 @@ export default {
           delay_app_measurement_init: true,
         },
       ],
+      [
+        'expo-splash-screen',
+        {
+          backgroundColor: '#ffffff',
+          image: './assets/wakewalk-icon.png',
+          resizeMode: 'contain',
+          dark: {
+            image: './assets/wakewalk-icon.png',
+            backgroundColor: '#000000',
+          },
+          imageWidth: 200,
+        },
+      ],
     ],
 
     experiments: {
@@ -56,6 +69,7 @@ export default {
           'WakeWalk uses your motion activity to count wake-walk steps.',
         UIBackgroundModes: ['audio', 'fetch', 'remote-notification'],
       },
+      icon: './assets/wakewalk.icon',
     },
 
     android: {
