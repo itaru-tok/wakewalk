@@ -22,7 +22,7 @@ export default function RootLayout() {
     Comfortaa_700Bold,
   })
 
-  // request consent for personalized ads for GDPR compliance
+  // request consent for App Tracking Transparency and personalized ads for GDPR compliance
   useEffect(() => {
     const requestConsent = async () => {
       const consentInfo = await AdsConsent.requestInfoUpdate()
