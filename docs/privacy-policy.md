@@ -1,6 +1,6 @@
 # Privacy Policy for WakeWalk
 
-Last updated: September 23, 2025
+Last updated: September 30, 2025
 
 ## Introduction
 
