@@ -181,9 +181,11 @@ export default function HomeScreen() {
         </View>
 
         <ScrollView
+          className="flex-1"
           contentContainerStyle={{
-            justifyContent: 'space-between', //主要なセクション間にスペースを均等に配置
+            flexGrow: 1,
           }}
+          showsVerticalScrollIndicator={false}
         >
           {/* Time Picker と Action Button をグループ化 */}
           <View className="justify-center items-center px-6 pt-8">
