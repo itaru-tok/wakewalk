@@ -2,7 +2,13 @@ import { Button, Host } from '@expo/ui/swift-ui'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
-import { StatusBar, Text, TouchableOpacity, View } from 'react-native'
+import {
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import AlarmSettings from '../../src/components/AlarmSettings'
 import CommonModal from '../../src/components/CommonModal'
@@ -174,12 +180,15 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Content Container */}
-        <View className="flex-1">
-          {/* Time Picker Section */}
-          <View className="flex-1 justify-center items-center px-6">
+        <ScrollView
+          contentContainerStyle={{
+            justifyContent: 'space-between', //主要なセクション間にスペースを均等に配置
+          }}
+        >
+          {/* Time Picker と Action Button をグループ化 */}
+          <View className="justify-center items-center px-6 pt-8">
+            {/* Time Picker Section */}
             <View className="relative h-auto w-full flex flex-row items-center justify-center">
-              {/* Glass overlay around selected row */}
               <View
                 pointerEvents="none"
                 className="absolute left-16 right-16 top-1/2 -translate-y-1/2 h-[70px] rounded-[35px] border border-white/25 bg-white/10"
@@ -293,15 +302,14 @@ export default function HomeScreen() {
           </View>
 
           {/* Alarm Settings Section */}
-          <View className="mt-auto">
+          <View>
             <AlarmSettings
               onSoundPress={() => router.push('/(modals)/sound')}
               onDurationPress={() => router.push('/(modals)/duration')}
               onSnoozePress={() => router.push('/(modals)/snooze')}
             />
           </View>
-        </View>
-
+        </ScrollView>
         <CommonModal
           visible={modalConfig.visible}
           title={modalConfig.title}
