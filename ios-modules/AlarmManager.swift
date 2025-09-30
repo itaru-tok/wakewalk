@@ -67,7 +67,7 @@ class AlarmManager: RCTEventEmitter {
       try session.setCategory(
         .playback,
         mode: .default,
-        options: []
+        options: [.mixWithOthers]  // 他のアプリとの音声ミックスを許可してバッテリー効率を向上
       )
       try session.setActive(true, options: [])
     } catch {
@@ -98,7 +98,7 @@ class AlarmManager: RCTEventEmitter {
     }
 
     player.numberOfLoops = -1
-    player.volume = 1.0
+    player.volume = 0.001  // 最小音量でバッテリー消費を軽減
     player.prepareToPlay()
     player.play()
     silentPlayer = player
@@ -151,18 +151,8 @@ class AlarmManager: RCTEventEmitter {
   private func scheduleTrigger(for date: Date, soundName: String, duration: TimeInterval) {
     invalidateTimers()
 
-    let leadTime = date.timeIntervalSinceNow - silentLeadTime
-    if leadTime > 0 {
-      let leadTimer = DispatchSource.makeTimerSource(queue: .global())
-      leadTimer.schedule(deadline: .now() + leadTime)
-      leadTimer.setEventHandler { [weak self] in
-        self?.startSilentLoop()
-      }
-      leadTimer.resume()
-      silentLeadTimer = leadTimer
-    } else {
-      startSilentLoop()
-    }
+    // TODO: Optimize battery consumption by using UNNotificationServiceExtension or notification triggers
+    startSilentLoop()
 
     let triggerTime = date.timeIntervalSinceNow
     if triggerTime > 0 {
