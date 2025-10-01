@@ -23,6 +23,23 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const [isPremium, setIsPremium] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+  // const handleDebugReset = async () => {
+  //   try {
+  //     const isAnonymous = await Purchases.isAnonymous()
+  //     if (isAnonymous) {
+  //       const tempUserId = `debug-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  //       await Purchases.logIn(tempUserId)
+  //     }
+
+  //     await Purchases.logOut()
+  //     await Purchases.invalidateCustomerInfoCache()
+  //     const premiumStatus = await checkSubscriptionStatus()
+  //     setIsPremium(premiumStatus)
+  //   } catch (error) {
+  //     console.error('Failed to reset RevenueCat state', error)
+  //   }
+  // }
+
   useEffect(() => {
     const checkPremiumStatus = async () => {
       try {
@@ -78,6 +95,16 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      {/* {__DEV__ && (
+        <View className="absolute bottom-10 right-5">
+          <TouchableOpacity
+            onPress={handleDebugReset}
+            className="bg-red-500 px-4 py-2.5 rounded-xl"
+          >
+            <Text className="text-white font-semibold">Reset RC</Text>
+          </TouchableOpacity>
+        </View>
+      )} */}
     </PremiumContext.Provider>
   )
 }

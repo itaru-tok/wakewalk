@@ -28,7 +28,7 @@ type RevenueCatPackage = Offerings['current'] extends {
     : never
   : never
 
-const MONTHLY_PACKAGE_ID = 'monthly'
+const MONTHLY_PACKAGE_ID = '$rc_monthly'
 const DEFAULT_PRICE_LABEL = '$0.99/month'
 
 export default function PaywallModal({
@@ -67,17 +67,22 @@ export default function PaywallModal({
   }, [])
 
   const fetchMonthlyPackage = useCallback(async () => {
-    const offerings = await Purchases.getOfferings()
-    const currentOffering = offerings.current
+    try {
+      const offerings = await Purchases.getOfferings()
+      const currentOffering = offerings.current
 
-    const foundPackage = currentOffering?.availablePackages.find(
-      (pkg) => pkg.identifier === MONTHLY_PACKAGE_ID,
-    )
+      const foundPackage = currentOffering?.availablePackages.find(
+        (pkg) => pkg.identifier === MONTHLY_PACKAGE_ID,
+      )
 
-    const normalizedPackage = foundPackage ?? null
-    setMonthlyPackage(normalizedPackage)
-    resolvePriceLabel(normalizedPackage)
-    return normalizedPackage
+      const normalizedPackage = foundPackage ?? null
+      setMonthlyPackage(normalizedPackage)
+      resolvePriceLabel(normalizedPackage)
+      return normalizedPackage
+    } catch (error) {
+      console.error('Error fetching offerings:', error)
+      return null
+    }
   }, [resolvePriceLabel])
 
   useEffect(() => {
@@ -272,11 +277,14 @@ export default function PaywallModal({
           <TouchableOpacity
             onPress={async () => {
               try {
-                await Purchases.restorePurchases()
-                Alert.alert('Success', 'Purchases restored!')
-                onClose()
-              } catch (_error) {
-                Alert.alert('Error', 'Failed to restore purchases')
+                const info = await Purchases.restorePurchases()
+                const hasPremium = info.entitlements.active['Pro'] !== undefined
+
+                if (hasPremium) {
+                  onClose()
+                }
+              } catch (error) {
+                console.error('Failed to restore purchases:', error)
               }
             }}
             className="mb-8"
