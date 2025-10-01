@@ -307,7 +307,7 @@ export default function HybridLiquidGlassStatsScreen() {
         {/* Ad Banner - Premium users don't see ads */}
         {!isPremium && (
           <View className="mt-6">
-            <MyAdmob size={BannerAdSize.BANNER} />
+            <MyAdmob size={BannerAdSize.LARGE_BANNER} />
           </View>
         )}
       </SafeAreaView>

@@ -16,7 +16,9 @@ module.exports = {
       },
       fontFamily: {
         comfortaa: ['Comfortaa', 'sans-serif'],
+        'comfortaa-regular': ['Comfortaa_400Regular'],
         'comfortaa-medium': ['Comfortaa_500Medium'],
+        'comfortaa-semibold': ['Comfortaa_600SemiBold'],
         'comfortaa-bold': ['Comfortaa_700Bold'],
         inter: ['Inter', 'sans-serif'],
         'inter-medium': ['Inter_500Medium'],

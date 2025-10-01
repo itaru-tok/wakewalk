@@ -45,6 +45,23 @@ export default function LiquidGlassScrollPicker({
     [initialScrollOffset],
   )
 
+  const baseLength = items.length || 1
+
+  const pickerItems = useMemo(
+    () =>
+      data.map((label, dataIndex) => {
+        const normalizedIndex = getNormalizedIndex(dataIndex)
+        const cycleIndex = cyclic ? Math.floor(dataIndex / baseLength) : 0
+
+        return {
+          key: `${normalizedIndex}-${cycleIndex}-${label}`,
+          normalizedIndex,
+          label,
+        }
+      }),
+    [baseLength, cyclic, data, getNormalizedIndex],
+  )
+
   return (
     <View style={{ height: containerHeight, justifyContent: 'center' }}>
       <ScrollView
@@ -58,13 +75,12 @@ export default function LiquidGlassScrollPicker({
         }}
         onMomentumScrollEnd={handleMomentumScrollEnd}
       >
-        {data.map((item, index) => {
-          const normalizedIndex = getNormalizedIndex(index)
+        {pickerItems.map(({ key, label, normalizedIndex }) => {
           const isSelected = normalizedIndex === selectedNormalizedIndex
 
           return (
             <View
-              key={`scroll-item-${index}`}
+              key={key}
               style={{
                 height: itemHeight,
                 justifyContent: 'center',
@@ -80,7 +96,7 @@ export default function LiquidGlassScrollPicker({
                     : fonts.comfortaa.medium,
                 }}
               >
-                {item}
+                {label}
               </Text>
             </View>
           )

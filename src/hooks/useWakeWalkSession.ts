@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert } from 'react-native'
 import { upsertDailyOutcome } from '../storage/dailyOutcome'
 
-const logDebug = (...args: any[]) => {
+const logDebug = (...args: unknown[]) => {
   if (__DEV__) {
     console.log('[WakeWalk]', ...args)
   }
@@ -129,8 +129,8 @@ export function useWakeWalkSession() {
 
       // Guard against running in a build that doesn't include the pedometer bridge.
       const hasNativeModule =
-        typeof (Pedometer as any)?.isAvailableAsync === 'function' &&
-        typeof (Pedometer as any)?.requestPermissionsAsync === 'function'
+        typeof Pedometer.isAvailableAsync === 'function' &&
+        typeof Pedometer.requestPermissionsAsync === 'function'
 
       if (!hasNativeModule) {
         logDebug('Pedometer native module missing')

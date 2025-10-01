@@ -1,5 +1,7 @@
 import {
+  Comfortaa_400Regular,
   Comfortaa_500Medium,
+  Comfortaa_600SemiBold,
   Comfortaa_700Bold,
   useFonts,
 } from '@expo-google-fonts/comfortaa'
@@ -18,7 +20,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
+    Comfortaa_400Regular,
     Comfortaa_500Medium,
+    Comfortaa_600SemiBold,
     Comfortaa_700Bold,
   })
 

@@ -6,7 +6,9 @@ export const colors = {
 
 export const fonts = {
   comfortaa: {
+    regular: 'Comfortaa_400Regular',
     medium: 'Comfortaa_500Medium',
+    semiBold: 'Comfortaa_600SemiBold',
     bold: 'Comfortaa_700Bold',
   },
   inter: {
