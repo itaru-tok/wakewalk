@@ -141,6 +141,19 @@ export default function PaywallModal({
     [onOpenLegalLink, openLink],
   )
 
+  const handleRestorePurchases = useCallback(async () => {
+    try {
+      const info = await Purchases.restorePurchases()
+      const hasPremium = info.entitlements.active['Pro'] !== undefined
+
+      if (hasPremium) {
+        onClose()
+      }
+    } catch (error) {
+      console.error('Failed to restore purchases:', error)
+    }
+  }, [onClose])
+
   return (
     <Modal
       visible={visible}
@@ -274,21 +287,7 @@ export default function PaywallModal({
           </View>
 
           {/* Restore Button */}
-          <TouchableOpacity
-            onPress={async () => {
-              try {
-                const info = await Purchases.restorePurchases()
-                const hasPremium = info.entitlements.active['Pro'] !== undefined
-
-                if (hasPremium) {
-                  onClose()
-                }
-              } catch (error) {
-                console.error('Failed to restore purchases:', error)
-              }
-            }}
-            className="mb-8"
-          >
+          <TouchableOpacity onPress={handleRestorePurchases} className="mb-8">
             <Text
               className="text-white/80 text-center underline"
               style={{ fontFamily: fonts.comfortaa.regular }}
