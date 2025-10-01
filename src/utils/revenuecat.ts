@@ -1,7 +1,6 @@
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import Purchases, { type CustomerInfo, LOG_LEVEL } from 'react-native-purchases'
-import RevenueCatUI from 'react-native-purchases-ui'
 
 const getAPIKey = () => {
   return Constants.expoConfig?.extra?.revenueCatApiKey
@@ -36,16 +35,5 @@ export const checkSubscriptionStatus = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Error checking subscription status:', error)
     return false
-  }
-}
-
-// TODO: show close button
-export const presentPaywall = async () => {
-  try {
-    const result = await RevenueCatUI.presentPaywall()
-    return result
-  } catch (error) {
-    console.error('Paywall error:', error)
-    throw error
   }
 }

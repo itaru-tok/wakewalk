@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
+  Linking,
   ScrollView,
   StatusBar,
   Text,
@@ -14,11 +15,11 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ColorPickerModal from '../../src/components/ColorPickerModal'
+import PaywallModal from '../../src/components/PaywallModal'
 import { fonts } from '../../src/constants/theme'
 import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDarkerShade } from '../../src/utils/color'
-import { presentPaywall } from '../../src/utils/revenuecat'
 
 export default function SettingsScreen() {
   const {
@@ -36,6 +37,15 @@ export default function SettingsScreen() {
   const [editingGradientIndex, setEditingGradientIndex] = useState<
     number | null
   >(null)
+  const [showPaywall, setShowPaywall] = useState(false)
+
+  const openExternalLink = useCallback(async (url: string) => {
+    try {
+      await Linking.openURL(url)
+    } catch (error) {
+      console.error('Failed to open link', error)
+    }
+  }, [])
 
   const handleColorSelect = useCallback(
     (color: string) => {
@@ -133,7 +143,7 @@ export default function SettingsScreen() {
                   if (isPremium) {
                     setThemeMode('gradient')
                   } else {
-                    presentPaywall().catch(console.error)
+                    setShowPaywall(true)
                   }
                 }}
                 className={`flex-1 py-3 rounded-lg ${
@@ -270,11 +280,10 @@ export default function SettingsScreen() {
                     Pro Active
                   </Text>
                 </View>
-                <Ionicons name="star" size={20} color="#F59E0B" />
               </View>
             ) : (
               <TouchableOpacity
-                onPress={() => presentPaywall().catch(console.error)}
+                onPress={() => setShowPaywall(true)}
                 className="flex-row items-center justify-between bg-yellow-500/20 rounded-lg p-4"
               >
                 <View className="flex-row items-center">
@@ -319,6 +328,12 @@ export default function SettingsScreen() {
               ? gradientColors[editingGradientIndex]
               : '#FFFFFF'
         }
+      />
+
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onOpenLegalLink={(url) => openExternalLink(url)}
       />
     </LinearGradient>
   )
