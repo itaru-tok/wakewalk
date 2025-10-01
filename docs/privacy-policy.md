@@ -1,3 +1,8 @@
+---
+title: Privacy Policy - WakeWalk
+description: Privacy Policy for WakeWalk mobile application
+---
+
 # Privacy Policy for WakeWalk
 
 Last updated: September 30, 2025
