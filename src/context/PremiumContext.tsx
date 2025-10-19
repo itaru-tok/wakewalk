@@ -19,8 +19,13 @@ interface PremiumContextType {
 
 const PremiumContext = createContext<PremiumContextType | undefined>(undefined)
 
+// 環境変数で課金をバイパスするかチェック
+const shouldBypassPremium = () => {
+  return process.env.EXPO_PUBLIC_PREMIUM_OVERRIDE === 'true'
+}
+
 export function PremiumProvider({ children }: { children: ReactNode }) {
-  const [isPremium, setIsPremium] = useState(false)
+  const [isPremium, setIsPremium] = useState(shouldBypassPremium())
   const [isLoading, setIsLoading] = useState(true)
 
   // const handleDebugReset = async () => {
@@ -43,6 +48,13 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkPremiumStatus = async () => {
       try {
+        // 環境変数でプレミアムバイパスが有効な場合、常にプレミアム扱い
+        if (shouldBypassPremium()) {
+          setIsPremium(true)
+          setIsLoading(false)
+          return
+        }
+
         const premiumStatus = await checkSubscriptionStatus()
         setIsPremium(premiumStatus)
       } catch (error) {
@@ -54,6 +66,11 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     }
 
     checkPremiumStatus()
+
+    // プレミアムバイパスが有効な場合はリスナー不要
+    if (shouldBypassPremium()) {
+      return
+    }
 
     // 課金状態が変更された時にリアルタイムで更新
     const customerInfoUpdateListener: CustomerInfoUpdateListener = (

@@ -1,5 +1,20 @@
 import 'dotenv/config'
 
+// ビルドプロファイルに応じてバンドルIDを動的に変更
+const getBundleIdentifier = () => {
+  const profile = process.env.EAS_BUILD_PROFILE
+  const baseBundleId = 'com.itaruo93o.wakewalk'
+
+  // ローカル開発（pnpm ios）の場合は.devサフィックス
+  if (!profile || profile === 'development') {
+    return `${baseBundleId}.dev`
+  } else if (profile === 'personal') {
+    return `${baseBundleId}.personal`
+  }
+  // preview と production は同じバンドルID
+  return baseBundleId
+}
+
 export default {
   expo: {
     name: 'WakeWalk',
@@ -61,7 +76,7 @@ export default {
     },
 
     ios: {
-      bundleIdentifier: 'com.itaruo93o.wakewalk',
+      bundleIdentifier: getBundleIdentifier(),
       supportsTablet: false,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
