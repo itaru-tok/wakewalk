@@ -1,7 +1,7 @@
 import { Button, Host } from '@expo/ui/swift-ui'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ScrollView,
   StatusBar,
@@ -116,6 +116,8 @@ export default function HomeScreen() {
   const pickerVisibleCount = 3
   const pickerHeight = useMemo(() => pickerRowHeight * pickerVisibleCount, [])
 
+  const [isPickerScrolling, setIsPickerScrolling] = useState(false)
+
   const scheduledTimeLabel = useMemo(() => {
     return scheduledAt ? formatClockTime(scheduledAt) : null
   }, [scheduledAt])
@@ -130,6 +132,14 @@ export default function HomeScreen() {
       ...string[],
     ]
   }, [gradientColors, themeColor, themeMode])
+
+  const handlePickerScrollStart = useCallback(() => {
+    setIsPickerScrolling(true)
+  }, [])
+
+  const handlePickerScrollEnd = useCallback(() => {
+    setIsPickerScrolling(false)
+  }, [])
 
   const isRinging = status === 'ringing'
   const canSnooze = snoozeEnabled && remainingSnoozes > 0 && isRinging
@@ -194,11 +204,12 @@ export default function HomeScreen() {
             flexGrow: 1,
           }}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={!isPickerScrolling}
         >
           {/* Time Picker と Action Button をグループ化 */}
           <View className="justify-center items-center px-6 pt-8">
             {/* Time Picker Section */}
-            <View className="relative h-auto w-full flex flex-row items-center justify-center">
+            <View className="relative h-auto w-full flex flex-row items-center justify-center pb-6">
               {timeHydrated && (
                 <View
                   pointerEvents="none"
@@ -216,6 +227,8 @@ export default function HomeScreen() {
                     items={hours}
                     selectedIndex={selectedHour}
                     onValueChange={setSelectedHour}
+                    onScrollStart={handlePickerScrollStart}
+                    onScrollEnd={handlePickerScrollEnd}
                     cyclic
                     rowHeight={pickerRowHeight}
                     visibleCount={pickerVisibleCount}
@@ -244,6 +257,8 @@ export default function HomeScreen() {
                     items={minutes}
                     selectedIndex={selectedMinute}
                     onValueChange={setSelectedMinute}
+                    onScrollStart={handlePickerScrollStart}
+                    onScrollEnd={handlePickerScrollEnd}
                     cyclic
                     rowHeight={pickerRowHeight}
                     visibleCount={pickerVisibleCount}
@@ -254,8 +269,42 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            {/* Alarm Actions */}
+            {isRinging ? (
+              canSnooze ? (
+                <View className="flex-row justify-center gap-x-6">
+                  <View className="flex-none">
+                    <ActionButton
+                      label="Stop"
+                      onPress={stopAlarm}
+                      size="compact"
+                    />
+                  </View>
+                  <View className="flex-none">
+                    <ActionButton
+                      label={snoozeButtonLabel}
+                      onPress={snoozeAlarm}
+                      size="compact"
+                    />
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <ActionButton label="Stop" onPress={stopAlarm} />
+                </View>
+              )
+            ) : (
+              <View>
+                {/* // TODO: prevent key mashing by sleep */}
+                <ActionButton
+                  label={mode === 'alarm' ? 'Sleep' : 'Nap'}
+                  onPress={handleArm}
+                />
+              </View>
+            )}
+
             {!isRinging && (
-              <View className="flex-row bg-white/10 rounded-2xl p-1 mt-6">
+              <View className="flex-row bg-white/10 rounded-2xl p-1 mt-4">
                 {modeOptions.map((option) => {
                   const isActive = mode === option.value
                   return (
@@ -281,40 +330,6 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                   )
                 })}
-              </View>
-            )}
-
-            {/* Alarm Actions */}
-            {isRinging ? (
-              canSnooze ? (
-                <View className="mt-4 flex-row justify-center gap-x-6">
-                  <View className="flex-none">
-                    <ActionButton
-                      label="Stop"
-                      onPress={stopAlarm}
-                      size="compact"
-                    />
-                  </View>
-                  <View className="flex-none">
-                    <ActionButton
-                      label={snoozeButtonLabel}
-                      onPress={snoozeAlarm}
-                      size="compact"
-                    />
-                  </View>
-                </View>
-              ) : (
-                <View className="mt-4">
-                  <ActionButton label="Stop" onPress={stopAlarm} />
-                </View>
-              )
-            ) : (
-              <View className="mt-4">
-                {/* // TODO: prevent key mashing by sleep */}
-                <ActionButton
-                  label={mode === 'alarm' ? 'Sleep' : 'Nap'}
-                  onPress={handleArm}
-                />
               </View>
             )}
             {scheduledTimeLabel && (

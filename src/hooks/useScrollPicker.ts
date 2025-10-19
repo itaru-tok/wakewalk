@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { ScrollView } from 'react-native'
 
@@ -23,6 +24,7 @@ export function useScrollPicker({
   const suppressMomentumRef = useRef(false)
   const lastRequestedIndexRef = useRef<number | null>(null)
   const initialOffsetRef = useRef<number | null>(null)
+  const previousScrollIndexRef = useRef<number | null>(null)
 
   const itemsLength = items.length
 
@@ -49,10 +51,15 @@ export function useScrollPicker({
     if (itemsLength === 0) return [] as string[]
     if (!cyclic) return items
 
+    // Create repeated array efficiently
     const total = itemsLength * REPEAT_MULTIPLIER
     const repeated: string[] = new Array(total)
-    for (let i = 0; i < total; i += 1) {
-      repeated[i] = items[i % itemsLength]
+    // Optimize by copying chunks instead of individual items
+    for (let chunk = 0; chunk < REPEAT_MULTIPLIER; chunk += 1) {
+      const offset = chunk * itemsLength
+      for (let i = 0; i < itemsLength; i += 1) {
+        repeated[offset + i] = items[i]
+      }
     }
     return repeated
   }, [cyclic, items, itemsLength])
@@ -65,7 +72,10 @@ export function useScrollPicker({
     return cycleStart + selectedNormalizedIndex
   }, [cyclic, itemsLength, selectedNormalizedIndex])
 
-  const currentTargetOffset = targetIndex * itemHeight
+  const currentTargetOffset = useMemo(
+    () => targetIndex * itemHeight,
+    [targetIndex, itemHeight],
+  )
 
   if (initialOffsetRef.current === null) {
     initialOffsetRef.current = currentTargetOffset
@@ -91,6 +101,30 @@ export function useScrollPicker({
     scrollRef.current.scrollTo({ y: currentTargetOffset, animated: true })
   }, [currentTargetOffset, itemsLength, targetIndex])
 
+  const getIndexFromOffset = useCallback(
+    (offsetY: number) => {
+      const rawIndex = Math.round(offsetY / itemHeight)
+      return normalizeIndex(rawIndex)
+    },
+    [itemHeight, normalizeIndex],
+  )
+
+  // Handle scroll for haptic feedback only
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      if (itemsLength === 0) return
+
+      const normalized = getIndexFromOffset(event.nativeEvent.contentOffset.y)
+
+      // Trigger haptic feedback when index changes
+      if (normalized !== previousScrollIndexRef.current) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
+        previousScrollIndexRef.current = normalized
+      }
+    },
+    [itemsLength, getIndexFromOffset],
+  )
+
   const handleMomentumScrollEnd = useCallback(
     (event: { nativeEvent: { contentOffset: { y: number } } }) => {
       if (itemsLength === 0) return
@@ -100,34 +134,23 @@ export function useScrollPicker({
         return
       }
 
-      const rawIndex = Math.round(
-        event.nativeEvent.contentOffset.y / itemHeight,
+      const normalizedIndex = getIndexFromOffset(
+        event.nativeEvent.contentOffset.y,
       )
-      const normalizedIndex = normalizeIndex(rawIndex)
 
       if (normalizedIndex !== selectedNormalizedIndex) {
         onValueChange(normalizedIndex)
       }
     },
-    [
-      itemHeight,
-      itemsLength,
-      normalizeIndex,
-      onValueChange,
-      selectedNormalizedIndex,
-    ],
-  )
-
-  const getNormalizedIndex = useCallback(
-    (index: number) => normalizeIndex(index),
-    [normalizeIndex],
+    [itemsLength, getIndexFromOffset, onValueChange, selectedNormalizedIndex],
   )
 
   return {
     data,
+    handleScroll,
     handleMomentumScrollEnd,
     scrollRef,
-    getNormalizedIndex,
+    normalizeIndex,
     selectedNormalizedIndex,
     initialScrollOffset: initialOffsetRef.current ?? 0,
   }
