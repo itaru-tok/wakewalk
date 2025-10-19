@@ -12,6 +12,7 @@ import { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads'
 import { AlarmSettingsProvider } from '../src/context/AlarmSettingsContext'
 import { PremiumProvider } from '../src/context/PremiumContext'
 import { ThemeProvider } from '../src/context/ThemeContext'
+import { TimeSelectionProvider } from '../src/context/TimeSelectionContext'
 import { initializeRevenueCat } from '../src/utils/revenuecat'
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -67,9 +68,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AlarmSettingsProvider>
-        <PremiumProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-        </PremiumProvider>
+        <TimeSelectionProvider>
+          <PremiumProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </PremiumProvider>
+        </TimeSelectionProvider>
       </AlarmSettingsProvider>
     </ThemeProvider>
   )

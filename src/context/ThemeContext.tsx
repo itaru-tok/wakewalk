@@ -1,6 +1,19 @@
-import { createContext, type ReactNode, useContext, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react'
+import { useAsyncStorageState } from '../hooks/useAsyncStorageState'
 
 export type ThemeMode = 'color' | 'gradient'
+
+interface StoredThemeSettings {
+  themeMode: ThemeMode
+  themeColor: string
+  gradientColors: string[]
+}
 
 interface ThemeContextType {
   themeMode: ThemeMode
@@ -13,28 +26,65 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-const defaultPrimaryColor = '#808080' // Gray color
-const defaultGradientColors = ['#8B5CF6', '#3B82F6']
+const DEFAULT_PRIMARY_COLOR = '#808080' // Gray color
+const DEFAULT_GRADIENT_COLORS = ['#8B5CF6', '#3B82F6']
+
+function validateThemeSettings(value: unknown): value is StoredThemeSettings {
+  if (typeof value !== 'object' || value === null) return false
+  const obj = value as Record<string, unknown>
+  return (
+    (obj.themeMode === 'color' || obj.themeMode === 'gradient') &&
+    typeof obj.themeColor === 'string' &&
+    Array.isArray(obj.gradientColors) &&
+    obj.gradientColors.every((color) => typeof color === 'string')
+  )
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeMode, setThemeMode] = useState<ThemeMode>('color')
-  const [themeColor, setThemeColor] = useState(defaultPrimaryColor)
-  const [gradientColors, setGradientColors] = useState(defaultGradientColors)
+  const { state, setState } = useAsyncStorageState<StoredThemeSettings>({
+    key: 'wakewalk:theme-settings',
+    defaultValue: {
+      themeMode: 'color',
+      themeColor: DEFAULT_PRIMARY_COLOR,
+      gradientColors: DEFAULT_GRADIENT_COLORS,
+    },
+    validate: validateThemeSettings,
+  })
 
-  return (
-    <ThemeContext.Provider
-      value={{
-        themeMode,
-        setThemeMode,
-        themeColor,
-        setThemeColor,
-        gradientColors,
-        setGradientColors,
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
+  const setThemeMode = useCallback(
+    (mode: ThemeMode) => {
+      setState((prev) => ({ ...prev, themeMode: mode }))
+    },
+    [setState],
   )
+
+  const setThemeColor = useCallback(
+    (color: string) => {
+      setState((prev) => ({ ...prev, themeColor: color }))
+    },
+    [setState],
+  )
+
+  const setGradientColors = useCallback(
+    (colors: string[]) => {
+      setState((prev) => ({ ...prev, gradientColors: colors }))
+    },
+    [setState],
+  )
+
+  const value = useMemo(
+    () => ({
+      themeMode: state.themeMode,
+      setThemeMode,
+      themeColor: state.themeColor,
+      setThemeColor,
+      gradientColors: state.gradientColors,
+      setGradientColors,
+    }),
+    [state, setThemeMode, setThemeColor, setGradientColors],
+  )
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {

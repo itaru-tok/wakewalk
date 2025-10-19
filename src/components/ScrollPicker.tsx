@@ -12,7 +12,7 @@ interface ScrollPickerProps {
   visibleCount?: number
 }
 
-export default function LiquidGlassScrollPicker({
+export default function ScrollPicker({
   items,
   selectedIndex,
   onValueChange,

@@ -16,8 +16,8 @@ import ScrollPicker from '../../src/components/ScrollPicker'
 import { fonts } from '../../src/constants/theme'
 import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { useTheme } from '../../src/context/ThemeContext'
+import { useTimeSelection } from '../../src/context/TimeSelectionContext'
 import { useAlarmHandler } from '../../src/hooks/useAlarmHandler'
-import type { SessionMode } from '../../src/storage/dailyOutcome'
 import { getDarkerShade } from '../../src/utils/color'
 import { formatClockTime } from '../../src/utils/time'
 
@@ -61,25 +61,29 @@ function ActionButton({
 
 const TAB_BAR_HEIGHT = 30
 
-const modeOptions: { label: string; value: SessionMode }[] = [
-  { label: 'Sleep', value: 'alarm' },
-  { label: 'Nap', value: 'nap' },
+const modeOptions = [
+  { label: 'Sleep', value: 'alarm' as const },
+  { label: 'Nap', value: 'nap' as const },
 ]
 
 export default function HomeScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
   const { snoozeEnabled } = useAlarmSettings()
+  const {
+    hour: selectedHour,
+    setHour: setSelectedHour,
+    minute: selectedMinute,
+    setMinute: setSelectedMinute,
+    mode,
+    setMode,
+    isHydrated: timeHydrated,
+  } = useTimeSelection()
   const insets = useSafeAreaInsets()
   const bottomPadding = useMemo(
     () => insets.bottom + TAB_BAR_HEIGHT,
     [insets.bottom],
   )
 
-  const [selectedHour, setSelectedHour] = useState(() => new Date().getHours())
-  const [selectedMinute, setSelectedMinute] = useState(() =>
-    new Date().getMinutes(),
-  )
-  const [mode, setMode] = useState<SessionMode>('alarm')
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean
     title: string
@@ -107,6 +111,10 @@ export default function HomeScreen() {
     () => Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')),
     [],
   )
+
+  const pickerRowHeight = 70
+  const pickerVisibleCount = 3
+  const pickerHeight = useMemo(() => pickerRowHeight * pickerVisibleCount, [])
 
   const scheduledTimeLabel = useMemo(() => {
     return scheduledAt ? formatClockTime(scheduledAt) : null
@@ -191,42 +199,58 @@ export default function HomeScreen() {
           <View className="justify-center items-center px-6 pt-8">
             {/* Time Picker Section */}
             <View className="relative h-auto w-full flex flex-row items-center justify-center">
-              <View
-                pointerEvents="none"
-                className="absolute left-16 right-16 top-1/2 -translate-y-1/2 h-[70px] rounded-[35px] border border-white/25 bg-white/10"
-              />
-              <View className="flex-1 max-w-[100px]">
-                {/* TODO: fix the slow behavior of the picker */}
-                <ScrollPicker
-                  items={hours}
-                  selectedIndex={selectedHour}
-                  onValueChange={setSelectedHour}
-                  cyclic
-                  rowHeight={70}
-                  visibleCount={3}
+              {timeHydrated && (
+                <View
+                  pointerEvents="none"
+                  className="absolute left-16 right-16 top-1/2 rounded-[35px] border border-white/25 bg-white/10"
+                  style={{
+                    transform: [{ translateY: -pickerRowHeight / 2 }],
+                    height: pickerRowHeight,
+                  }}
                 />
+              )}
+              {/* Hours */}
+              <View className="flex-1 max-w-[100px]">
+                {timeHydrated ? (
+                  <ScrollPicker
+                    items={hours}
+                    selectedIndex={selectedHour}
+                    onValueChange={setSelectedHour}
+                    cyclic
+                    rowHeight={pickerRowHeight}
+                    visibleCount={pickerVisibleCount}
+                  />
+                ) : (
+                  <View style={{ height: pickerHeight }} />
+                )}
               </View>
 
               {/* Colon Separator */}
               <View className="-mx-2">
-                <Text
-                  className="text-white text-6xl"
-                  style={{ fontFamily: fonts.comfortaa.bold }}
-                >
-                  :
-                </Text>
+                {timeHydrated && (
+                  <Text
+                    className="text-white text-6xl"
+                    style={{ fontFamily: fonts.comfortaa.bold }}
+                  >
+                    :
+                  </Text>
+                )}
               </View>
 
-              {/* Minutes Picker */}
+              {/* Minutes */}
               <View className="flex-1 max-w-[100px]">
-                <ScrollPicker
-                  items={minutes}
-                  selectedIndex={selectedMinute}
-                  onValueChange={setSelectedMinute}
-                  cyclic
-                  rowHeight={70}
-                  visibleCount={3}
-                />
+                {timeHydrated ? (
+                  <ScrollPicker
+                    items={minutes}
+                    selectedIndex={selectedMinute}
+                    onValueChange={setSelectedMinute}
+                    cyclic
+                    rowHeight={pickerRowHeight}
+                    visibleCount={pickerVisibleCount}
+                  />
+                ) : (
+                  <View style={{ height: pickerHeight }} />
+                )}
               </View>
             </View>
 
