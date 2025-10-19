@@ -96,6 +96,7 @@ export default function HomeScreen() {
     scheduledAt,
     status,
     stopAlarm,
+    cancelAlarm,
     snoozeAlarm,
     remainingSnoozes,
     handleArm,
@@ -142,6 +143,7 @@ export default function HomeScreen() {
   }, [])
 
   const isRinging = status === 'ringing'
+  const isArmed = status === 'armed'
   const canSnooze = snoozeEnabled && remainingSnoozes > 0 && isRinging
   const snoozeButtonLabel = `Snooze (${remainingSnoozes} left)`
 
@@ -293,6 +295,10 @@ export default function HomeScreen() {
                   <ActionButton label="Stop" onPress={stopAlarm} />
                 </View>
               )
+            ) : status === 'armed' ? (
+              <View>
+                <ActionButton label="Cancel" onPress={cancelAlarm} />
+              </View>
             ) : (
               <View>
                 {/* // TODO: prevent key mashing by sleep */}
@@ -305,14 +311,14 @@ export default function HomeScreen() {
 
             {scheduledTimeLabel && (
               <Text
-                className="mt-2 text-white/85"
+                className="mt-3 text-white text-3xl"
                 style={{ fontFamily: fonts.comfortaa.medium }}
               >
-                Scheduled time: {scheduledTimeLabel}
+                ⏰ {scheduledTimeLabel}
               </Text>
             )}
 
-            {!isRinging && (
+            {!isRinging && !isArmed && (
               <View className="flex-row bg-white/10 rounded-2xl p-1 mt-4">
                 {modeOptions.map((option) => {
                   const isActive = mode === option.value

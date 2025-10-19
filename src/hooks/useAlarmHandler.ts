@@ -226,10 +226,20 @@ export function useAlarmHandler(
     }
   }, [snoozeAlarm, snoozeDurationMinutes])
 
+  const handleCancelAlarm = useCallback(async () => {
+    try {
+      await stopAlarm()
+      armedSessionRef.current = null
+    } catch (error) {
+      logError('Failed to cancel alarm', error)
+    }
+  }, [stopAlarm])
+
   return {
     scheduledAt,
     status,
     stopAlarm: handleStopAlarm,
+    cancelAlarm: handleCancelAlarm,
     snoozeAlarm: handleSnoozeAlarm,
     remainingSnoozes,
     handleArm,

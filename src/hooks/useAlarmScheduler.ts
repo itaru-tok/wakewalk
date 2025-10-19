@@ -313,6 +313,8 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     snoozeEnabled,
   ])
 
+  // Update alarm settings when they change while alarm is armed
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only trigger when settings change to avoid infinite loops
   useEffect(() => {
     if (status !== 'armed') {
       return
@@ -320,7 +322,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
 
     let isActive = true
 
-    // Queue a restart so the armed alarm picks up new sound/vibration settings.
+    // Queue a restart so the armed alarm picks up new sound/vibration settings
     const enqueueUpdate = () => {
       const previous = settingsUpdatePromiseRef.current ?? Promise.resolve()
       const next = previous
@@ -342,7 +344,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
             return
           }
 
-          // Flag this stop as internal so AlarmStopped does not reset state.
+          // Flag this stop as internal so AlarmStopped does not reset state
           adjustingNativeAlarmRef.current = true
           try {
             stopNativeAlarm()
@@ -376,7 +378,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     return () => {
       isActive = false
     }
-  }, [armAlarmForTarget, cancelScheduledNotification, status])
+  }, [ringDurationMinutes, soundEnabled, soundFileName, vibrationEnabled])
 
   useEffect(() => {
     const triggeredSub = alarmEventEmitter.addListener(
