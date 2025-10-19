@@ -1,11 +1,12 @@
 import * as Haptics from 'expo-haptics'
 import * as Notifications from 'expo-notifications'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { SOUND_FILE_MAP } from '../constants/sounds'
 import {
   DEFAULT_SOUND_ID,
   useAlarmSettings,
 } from '../context/AlarmSettingsContext'
+import { useAlarmState } from '../context/AlarmStateContext'
 import {
   alarmEventEmitter,
   startNativeAlarm,
@@ -16,8 +17,6 @@ import {
   ALARM_STOP_ACTION_ID,
   ensureNotificationSetup,
 } from '../utils/notifications'
-
-type AlarmStatus = 'idle' | 'armed' | 'ringing'
 
 type SnoozeGuard = {
   token: symbol
@@ -47,22 +46,35 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     snoozeRepeatCount,
   } = useAlarmSettings()
 
-  const [status, setStatus] = useState<AlarmStatus>('idle')
-  const statusRef = useRef<AlarmStatus>('idle')
+  const {
+    status,
+    setStatus,
+    scheduledAt,
+    setScheduledAt,
+    remainingSnoozes,
+    setRemainingSnoozes,
+  } = useAlarmState()
 
-  // Update statusRef whenever status changes
+  const statusRef = useRef(status)
+  const scheduledAtRef = useRef(scheduledAt)
+  const remainingSnoozesRef = useRef(remainingSnoozes)
+  const scheduledNotificationIdRef = useRef<string | null>(null)
+  const adjustingNativeAlarmRef = useRef(false)
+  const snoozeGuardRef = useRef<SnoozeGuard | null>(null)
+  const settingsUpdatePromiseRef = useRef<Promise<void> | null>(null)
+
+  // Update refs whenever values change
   useEffect(() => {
     statusRef.current = status
   }, [status])
-  const [scheduledAt, setScheduledAt] = useState<Date | null>(null)
-  const scheduledNotificationIdRef = useRef<string | null>(null)
-  // True while we intentionally stop/restart the native alarm to apply new settings.
-  const adjustingNativeAlarmRef = useRef(false)
-  const snoozeGuardRef = useRef<SnoozeGuard | null>(null)
-  const scheduledAtRef = useRef<Date | null>(null)
-  const settingsUpdatePromiseRef = useRef<Promise<void> | null>(null)
-  const [remainingSnoozes, setRemainingSnoozes] = useState(0)
-  const remainingSnoozesRef = useRef(0)
+
+  useEffect(() => {
+    scheduledAtRef.current = scheduledAt
+  }, [scheduledAt])
+
+  useEffect(() => {
+    remainingSnoozesRef.current = remainingSnoozes
+  }, [remainingSnoozes])
 
   const clearSnoozeGuard = useCallback(() => {
     const guard = snoozeGuardRef.current
@@ -91,14 +103,6 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     [selectedSoundId],
   )
 
-  useEffect(() => {
-    scheduledAtRef.current = scheduledAt
-  }, [scheduledAt])
-
-  useEffect(() => {
-    remainingSnoozesRef.current = remainingSnoozes
-  }, [remainingSnoozes])
-
   useEffect(
     () => () => {
       clearSnoozeGuard()
@@ -121,7 +125,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
       }
       return prev
     })
-  }, [snoozeEnabled, snoozeRepeatCount])
+  }, [snoozeEnabled, snoozeRepeatCount, setRemainingSnoozes])
 
   const cancelScheduledNotification = useCallback(async () => {
     const id = scheduledNotificationIdRef.current
@@ -145,7 +149,12 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     setScheduledAt(null)
     setStatus('idle')
     setRemainingSnoozes(0)
-  }, [cancelScheduledNotification])
+  }, [
+    cancelScheduledNotification,
+    setScheduledAt,
+    setStatus,
+    setRemainingSnoozes,
+  ])
 
   const requestNotificationPermission = useCallback(async () => {
     const permissions = await Notifications.getPermissionsAsync()
@@ -225,6 +234,8 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
       soundEnabled,
       soundFileName,
       vibrationEnabled,
+      setScheduledAt,
+      setStatus,
     ],
   )
 
@@ -257,6 +268,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
       snoozeEnabled,
       snoozeRepeatCount,
       stopAlarm,
+      setRemainingSnoozes,
     ],
   )
 
@@ -311,6 +323,9 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     createSnoozeGuard,
     snoozeDurationMinutes,
     snoozeEnabled,
+    setRemainingSnoozes,
+    setScheduledAt,
+    setStatus,
   ])
 
   // Update alarm settings when they change while alarm is armed
@@ -456,6 +471,9 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
     clearSnoozeGuard,
     vibrationEnabled,
     onAutoStop,
+    setScheduledAt,
+    setStatus,
+    setRemainingSnoozes,
   ])
 
   useEffect(() => {
@@ -488,7 +506,7 @@ export function useAlarmScheduler(onAutoStop?: () => void) {
       receivedSub.remove()
       responseSub.remove()
     }
-  }, [stopAlarm])
+  }, [stopAlarm, setScheduledAt, setStatus])
 
   useEffect(() => {
     ensureNotificationSetup()?.catch(() => {})

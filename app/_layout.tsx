@@ -10,6 +10,7 @@ import { useEffect } from 'react'
 import { View } from 'react-native'
 import { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads'
 import { AlarmSettingsProvider } from '../src/context/AlarmSettingsContext'
+import { AlarmStateProvider } from '../src/context/AlarmStateContext'
 import { PremiumProvider } from '../src/context/PremiumContext'
 import { ThemeProvider } from '../src/context/ThemeContext'
 import { TimeSelectionProvider } from '../src/context/TimeSelectionContext'
@@ -68,11 +69,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AlarmSettingsProvider>
-        <TimeSelectionProvider>
-          <PremiumProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </PremiumProvider>
-        </TimeSelectionProvider>
+        <AlarmStateProvider>
+          <TimeSelectionProvider>
+            <PremiumProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </PremiumProvider>
+          </TimeSelectionProvider>
+        </AlarmStateProvider>
       </AlarmSettingsProvider>
     </ThemeProvider>
   )
