@@ -303,6 +303,15 @@ export default function HomeScreen() {
               </View>
             )}
 
+            {scheduledTimeLabel && (
+              <Text
+                className="mt-2 text-white/85"
+                style={{ fontFamily: fonts.comfortaa.medium }}
+              >
+                Scheduled time: {scheduledTimeLabel}
+              </Text>
+            )}
+
             {!isRinging && (
               <View className="flex-row bg-white/10 rounded-2xl p-1 mt-4">
                 {modeOptions.map((option) => {
@@ -331,14 +340,6 @@ export default function HomeScreen() {
                   )
                 })}
               </View>
-            )}
-            {scheduledTimeLabel && (
-              <Text
-                className="mt-2 text-white/85"
-                style={{ fontFamily: fonts.comfortaa.medium }}
-              >
-                Scheduled time: {scheduledTimeLabel}
-              </Text>
             )}
           </View>
 
