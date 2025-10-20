@@ -187,14 +187,13 @@ export function useAlarmHandler(
 
       const infoLine =
         mode === 'alarm'
-          ? `Please ensure your device is charging during sleep for battery.\n\nAfter alarm stops, walk 100 steps within 60 minutes of set alarm time to add to your commit graph.`
+          ? `Please ensure your device is charging during sleep for battery.\n\nAfter alarm stops, walk 100 steps within 60 minutes of set alarm time to add to your commit graph🌱.`
           : `Wake Walk session doesn't start in nap mode.`
 
-      const formattedTarget = formatClockTime(target)
       const message =
         mode === 'alarm'
-          ? `Alarm scheduled for ${formattedTarget}.\n\n${infoLine}`
-          : `Nap scheduled for ${formattedTarget}.\n\n${infoLine}`
+          ? `Alarm scheduled.\n\n${infoLine}`
+          : `Nap scheduled.\n\n${infoLine}`
       Alert.alert(message)
     } catch (error) {
       logError('Failed to schedule alarm', error)

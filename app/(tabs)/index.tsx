@@ -166,12 +166,12 @@ export default function HomeScreen() {
       success: {
         ...baseConfig,
         title: 'Committed!',
-        message: 'You hit your wake walk goal.',
+        message: 'You hit your wake walk goal🚀.',
       },
       fail: {
         ...baseConfig,
         title: 'Missed today',
-        message: 'Try tomorrow — you got this.',
+        message: 'Try tomorrow — you got this💪.',
       },
     }
 
