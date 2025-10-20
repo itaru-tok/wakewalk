@@ -166,7 +166,7 @@ export default function PaywallModal({
         locations={[0, 0.5, 1]}
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between p-6 pt-12">
+        <View className="flex-row items-center justify-between pl-6 pr-6 pb-3 pt-12">
           <TouchableOpacity onPress={onClose}>
             <Ionicons name="close" size={28} color="white" />
           </TouchableOpacity>
@@ -191,15 +191,9 @@ export default function PaywallModal({
             >
               Monthly Upgrade
             </Text>
-            <Text
-              className="text-white/90 text-lg text-center mb-8"
-              style={{ fontFamily: fonts.comfortaa.regular }}
-            >
-              Unlock gradient themes and Ad-Free Experience.
-            </Text>
 
-            <View className="bg-white/10 rounded-2xl p-6 mb-6">
-              <View className="flex-row items-center mb-4">
+            <View className="bg-white/10 rounded-2xl pl-4 pr-4 pt-2 pb-2 mb-6">
+              <View className="flex-row items-center mb-2">
                 <Ionicons name="color-palette" size={24} color="#F59E0B" />
                 <Text
                   className="text-white text-lg ml-3"
@@ -209,7 +203,7 @@ export default function PaywallModal({
                 </Text>
               </View>
               <Text
-                className="text-white/80 mb-4"
+                className="text-white/80 leading-6"
                 style={{ fontFamily: fonts.comfortaa.regular }}
               >
                 Customize up to 3 colors in your gradients for truly
@@ -217,8 +211,27 @@ export default function PaywallModal({
               </Text>
             </View>
 
-            <View className="bg-white/10 rounded-2xl p-6 mb-6">
-              <View className="flex-row items-center mb-4">
+            <View className="bg-white/10 rounded-2xl pl-4 pr-4 pt-2 pb-2 mb-6">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="footsteps" size={24} color="#F59E0B" />
+                <Text
+                  className="text-white text-lg ml-3"
+                  style={{ fontFamily: fonts.comfortaa.medium }}
+                >
+                  Custom Wake Walk Goals
+                </Text>
+              </View>
+              <Text
+                className="text-white/80 leading-6"
+                style={{ fontFamily: fonts.comfortaa.regular }}
+              >
+                Set your own step goals (10-1000 steps) and time limits (10-60
+                minutes) to match your fitness level
+              </Text>
+            </View>
+
+            <View className="bg-white/10 rounded-2xl pl-4 pr-4 pt-2 pb-2 mb-6">
+              <View className="flex-row items-center mb-2">
                 <Ionicons name="eye-off" size={24} color="#F59E0B" />
                 <Text
                   className="text-white text-lg ml-3"
@@ -228,7 +241,7 @@ export default function PaywallModal({
                 </Text>
               </View>
               <Text
-                className="text-white/80 mb-4"
+                className="text-white/80 leading-6"
                 style={{ fontFamily: fonts.comfortaa.regular }}
               >
                 Enjoy an uninterrupted, ad-free morning routine without any
@@ -238,7 +251,7 @@ export default function PaywallModal({
           </View>
 
           {/* Subscription Info */}
-          <View className="mb-8">
+          <View className="mb-4">
             <Text className="text-white/70 text-xs text- leading-5">
               Your subscription will automatically renew for {priceLabel} unless
               canceled at least 24 hours before the end of the current period.

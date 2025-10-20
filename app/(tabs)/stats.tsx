@@ -6,6 +6,7 @@ import { BannerAdSize } from 'react-native-google-mobile-ads'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import MyAdmob from '../../src/components/MyAdmob'
 import { fonts, theme } from '../../src/constants/theme'
+import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import {
@@ -38,10 +39,14 @@ export default function HybridLiquidGlassStatsScreen() {
   const { themeMode, themeColor, gradientColors } = useTheme()
   const { isPremium } = usePremium()
   const { streakData, updateStreaks } = useStreaks()
+  const { walkGoalSteps, walkGoalMinutes } = useAlarmSettings()
   const insets = useSafeAreaInsets()
   const TAB_BAR_HEIGHT = 90
   const bottomPadding = insets.bottom + TAB_BAR_HEIGHT + 12
   const { monthsData, buildCalendar } = useCalendarData()
+
+  const effectiveWalkGoalSteps = isPremium ? walkGoalSteps : 100
+  const effectiveWalkGoalMinutes = isPremium ? walkGoalMinutes : 60
 
   const getBackgroundColors = useCallback(() => {
     if (themeMode === 'color') {
@@ -227,11 +232,12 @@ export default function HybridLiquidGlassStatsScreen() {
 
           {/* How commits work explanation */}
           <Text
-            className="text-white/50 text-xs mt-3 text-left leading-tight"
+            className="text-white/50 text-sm mt-3 text-left leading-tight"
             style={{ fontFamily: fonts.comfortaa.medium }}
           >
-            Commits are earned by walking 100+ steps within 60 minutes of set
-            alarm time after alarm stops.
+            Commits are earned by walking {effectiveWalkGoalSteps}+ steps within{' '}
+            {effectiveWalkGoalMinutes} minutes of set alarm time after alarm
+            stops.
           </Text>
         </View>
 

@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react'
 import { Alert } from 'react-native'
 import { useAlarmSettings } from '../context/AlarmSettingsContext'
+import { usePremium } from '../context/PremiumContext'
 import {
   overwriteDailyOutcome,
   type SessionMode,
@@ -10,10 +11,9 @@ import { addMinutes, formatClockTime, getDateKey } from '../utils/time'
 import { useAlarmScheduler } from './useAlarmScheduler'
 import { useWakeWalkSession } from './useWakeWalkSession'
 
-const _TAB_BAR_HEIGHT = 30
-const WALK_GOAL_MINUTES = 60
-const WALK_GOAL_STEPS = 100
 const RULE_VERSION = 1
+const DEFAULT_WALK_GOAL_MINUTES = 60
+const DEFAULT_WALK_GOAL_STEPS = 100
 
 type ArmedSession = {
   dateKey: string
@@ -42,8 +42,17 @@ export function useAlarmHandler(
   mode: SessionMode,
   setModalConfig: (config: ModalConfig) => void,
 ) {
-  const { snoozeDurationMinutes } = useAlarmSettings()
+  const { snoozeDurationMinutes, walkGoalMinutes, walkGoalSteps } =
+    useAlarmSettings()
+  const { isPremium } = usePremium()
   const armedSessionRef = useRef<ArmedSession | null>(null)
+
+  const effectiveWalkGoalMinutes = isPremium
+    ? walkGoalMinutes
+    : DEFAULT_WALK_GOAL_MINUTES
+  const effectiveWalkGoalSteps = isPremium
+    ? walkGoalSteps
+    : DEFAULT_WALK_GOAL_STEPS
 
   const {
     session: walkSession,
@@ -76,7 +85,7 @@ export function useAlarmHandler(
             mode: 'alarm',
             alarmTime: target.toISOString(),
             wakeGoalTime: wakeGoal.toISOString(),
-            goalSteps: WALK_GOAL_STEPS,
+            goalSteps: effectiveWalkGoalSteps,
             stopAt: stopAt.toISOString(),
             achievedAt: null,
             stepsInWindow: 0,
@@ -88,7 +97,7 @@ export function useAlarmHandler(
           visible: true,
           title: 'Missed today',
           message: 'Try tomorrow — you got this.',
-          subMessage: `0/${WALK_GOAL_STEPS} steps`,
+          subMessage: `0/${effectiveWalkGoalSteps} steps`,
         })
         armedSessionRef.current = null
         resetSession()
@@ -101,7 +110,7 @@ export function useAlarmHandler(
           mode: 'alarm',
           alarmTime: target.toISOString(),
           wakeGoalTime: wakeGoal.toISOString(),
-          goalSteps: WALK_GOAL_STEPS,
+          goalSteps: effectiveWalkGoalSteps,
           stopAt: stopAt.toISOString(),
           achievedAt: null,
           stepsInWindow: 0,
@@ -114,7 +123,7 @@ export function useAlarmHandler(
           dateKey,
           stopAt,
           wakeGoal,
-          goalSteps: WALK_GOAL_STEPS,
+          goalSteps: effectiveWalkGoalSteps,
         })
       } catch (error) {
         logError('Failed to start wake walk tracking', error)
@@ -128,7 +137,7 @@ export function useAlarmHandler(
         armedSessionRef.current = null
       }
     },
-    [resetSession, startTracking, setModalConfig],
+    [resetSession, startTracking, setModalConfig, effectiveWalkGoalSteps],
   )
 
   // Auto-stop callback for useAlarmScheduler
@@ -161,7 +170,7 @@ export function useAlarmHandler(
     resetSession()
     try {
       const target = await scheduleAlarm(selectedHour, selectedMinute)
-      const wakeGoal = addMinutes(target, WALK_GOAL_MINUTES)
+      const wakeGoal = addMinutes(target, effectiveWalkGoalMinutes)
       const dateKey = getDateKey(target)
 
       armedSessionRef.current = {
@@ -177,7 +186,7 @@ export function useAlarmHandler(
           mode: 'alarm',
           alarmTime: target.toISOString(),
           wakeGoalTime: wakeGoal.toISOString(),
-          goalSteps: WALK_GOAL_STEPS,
+          goalSteps: effectiveWalkGoalSteps,
           stopAt: null,
           achievedAt: null,
           stepsInWindow: 0,
@@ -187,7 +196,7 @@ export function useAlarmHandler(
 
       const infoLine =
         mode === 'alarm'
-          ? `Please ensure your device is charging during sleep for battery.\n\nAfter alarm stops, walk 100 steps within 60 minutes of set alarm time to add to your commit graph🌱.`
+          ? `Please ensure your device is charging during sleep for battery.\n\nAfter alarm stops, walk ${effectiveWalkGoalSteps} steps within ${effectiveWalkGoalMinutes} minutes of set alarm time to add to your commit graph🌱.`
           : `Wake Walk session doesn't start in nap mode.`
 
       const message =
@@ -203,7 +212,15 @@ export function useAlarmHandler(
           : 'Please try again.'
       Alert.alert('Failed to arm alarm', message)
     }
-  }, [mode, resetSession, scheduleAlarm, selectedHour, selectedMinute])
+  }, [
+    mode,
+    resetSession,
+    scheduleAlarm,
+    selectedHour,
+    selectedMinute,
+    effectiveWalkGoalMinutes,
+    effectiveWalkGoalSteps,
+  ])
 
   // Handle snooze
   const handleSnoozeAlarm = useCallback(async () => {

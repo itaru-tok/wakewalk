@@ -1,22 +1,15 @@
 // TODO: use SwiftUI Components from @expo/ui/swift-ui
 // TODO: use ColorPicker from @expo/ui/swift-ui
-import { ColorPicker, Host } from '@expo/ui/swift-ui'
+import { ColorPicker, Host, HStack, Slider, VStack } from '@expo/ui/swift-ui'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  Linking,
-  ScrollView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Linking, StatusBar, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import ColorPickerModal from '../../src/components/ColorPickerModal'
 import PaywallModal from '../../src/components/PaywallModal'
 import { fonts } from '../../src/constants/theme'
+import { useAlarmSettings } from '../../src/context/AlarmSettingsContext'
 import { usePremium } from '../../src/context/PremiumContext'
 import { useTheme } from '../../src/context/ThemeContext'
 import { getDarkerShade } from '../../src/utils/color'
@@ -31,7 +24,14 @@ export default function SettingsScreen() {
     setGradientColors,
   } = useTheme()
 
-  const { isPremium, isLoading } = usePremium()
+  const { isPremium } = usePremium()
+
+  const {
+    walkGoalSteps,
+    setWalkGoalSteps,
+    walkGoalMinutes,
+    setWalkGoalMinutes,
+  } = useAlarmSettings()
 
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [editingGradientIndex, setEditingGradientIndex] = useState<
@@ -92,6 +92,24 @@ export default function SettingsScreen() {
     }
   }, [themeMode, themeColor, gradientColors])
 
+  const handleWalkGoalStepsChange = useCallback(
+    (value: number) => {
+      // Slider値 (0-1) を 10-1000 に変換
+      const steps = Math.round(value * (1000 - 10) + 10)
+      setWalkGoalSteps(steps)
+    },
+    [setWalkGoalSteps],
+  )
+
+  const handleWalkGoalMinutesChange = useCallback(
+    (value: number) => {
+      // Slider値 (0-1) を 10-60 に変換
+      const minutes = Math.round(value * (60 - 10) + 10)
+      setWalkGoalMinutes(minutes)
+    },
+    [setWalkGoalMinutes],
+  )
+
   return (
     <LinearGradient
       colors={getBackgroundColors()}
@@ -111,8 +129,8 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
-        <ScrollView className="flex-1 px-6">
-          {/* Theme Mode Selector */}
+        {/* Theme Mode Selector */}
+        <View className="px-6 flex-1">
           <View className="bg-white/10 rounded-2xl p-4 mb-6">
             <Text className="text-white text-lg font-comfortaa mb-4">
               Background Color
@@ -259,41 +277,114 @@ export default function SettingsScreen() {
             </View>
           )}
 
-          {/* Premium Section */}
+          {/* Wake Walk Goals Section */}
           <View className="bg-white/10 rounded-2xl p-4 mb-6">
-            <Text className="text-white text-lg font-comfortaa mb-4">
-              Pro Plan
-            </Text>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-white text-lg font-comfortaa">
+                Wake Walk Goals
+              </Text>
+            </View>
 
-            {isLoading ? (
-              <View className="flex-row items-center justify-center py-4">
-                <ActivityIndicator color="white" />
-                <Text className="text-white/70 ml-3 font-comfortaa">
-                  Loading...
+            {/* Sliders with Overlay */}
+            <View className="relative">
+              <View pointerEvents={isPremium ? 'auto' : 'none'}>
+                <Host>
+                  <VStack spacing={16}>
+                    <VStack spacing={8}>
+                      <HStack spacing={12} alignment="center">
+                        <Text className="text-white text-sm font-comfortaa">
+                          Steps Goal:
+                        </Text>
+                        <Text className="text-accent text-sm font-comfortaa-bold">
+                          {isPremium ? walkGoalSteps : 100} steps
+                        </Text>
+                      </HStack>
+                      <Slider
+                        value={
+                          isPremium
+                            ? (walkGoalSteps - 10) / (1000 - 10)
+                            : (100 - 10) / (1000 - 10)
+                        }
+                        onValueChange={handleWalkGoalStepsChange}
+                      />
+                    </VStack>
+                  </VStack>
+                </Host>
+                <View className="flex-row justify-between px-1 mt-1">
+                  <Text className="text-white/60 text-xs font-comfortaa">
+                    10 steps
+                  </Text>
+                  <Text className="text-white/60 text-xs font-comfortaa">
+                    1000 steps
+                  </Text>
+                </View>
+
+                <Host>
+                  <VStack spacing={16}>
+                    <VStack spacing={8}>
+                      <HStack spacing={12} alignment="center">
+                        <Text className="text-white text-sm font-comfortaa">
+                          Time Limit:
+                        </Text>
+                        <Text className="text-accent text-sm font-comfortaa-bold">
+                          {isPremium ? walkGoalMinutes : 60} min
+                        </Text>
+                      </HStack>
+                      <Slider
+                        value={
+                          isPremium
+                            ? (walkGoalMinutes - 10) / (60 - 10)
+                            : (60 - 10) / (60 - 10)
+                        }
+                        onValueChange={handleWalkGoalMinutesChange}
+                      />
+                    </VStack>
+                  </VStack>
+                </Host>
+                <View className="flex-row justify-between px-1 mt-1">
+                  <Text className="text-white/60 text-xs font-comfortaa">
+                    10 min
+                  </Text>
+                  <Text className="text-white/60 text-xs font-comfortaa">
+                    60 min
+                  </Text>
+                </View>
+              </View>
+
+              {/* Pro Overlay on Sliders Only */}
+              {!isPremium && (
+                <View className="absolute inset-0 justify-center items-center rounded-xl">
+                  <TouchableOpacity
+                    onPress={() => setShowPaywall(true)}
+                    className="flex-row items-center justify-center bg-yellow-500/20 rounded-xl px-6 py-4 border-2 border-yellow-500/40"
+                  >
+                    <Ionicons name="lock-closed" size={24} color="#F59E0B" />
+                    <Text className="text-white ml-3 font-comfortaa-bold text-base">
+                      Unlock Pro to customize
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Goal Summary - Always Visible */}
+            <View className="bg-black/30 rounded-lg p-3 mt-4">
+              <Text className="text-white/90 text-sm font-comfortaa text-center">
+                Your wake walk goal is{' '}
+                <Text className="text-accent font-comfortaa-bold text-xl">
+                  {isPremium ? walkGoalSteps : 100}
                 </Text>
-              </View>
-            ) : isPremium ? (
-              <View className="flex-row items-center justify-between rounded-lg p-4">
-                <View className="flex-row items-center">
-                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                  <Text className="text-white ml-3 font-comfortaa">
-                    Pro Active
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <TouchableOpacity
-                onPress={() => setShowPaywall(true)}
-                className="flex-row items-center justify-between bg-yellow-500/20 rounded-lg p-4"
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="lock-closed" size={24} color="#F59E0B" />
-                  <Text className="text-white ml-3 font-comfortaa">
-                    Unlock Pro
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                <Text className="text-accent font-comfortaa-bold"> steps</Text>{' '}
+                within{' '}
+                <Text className="text-accent font-comfortaa-bold text-xl">
+                  {isPremium ? walkGoalMinutes : 60}
+                </Text>
+                <Text className="text-accent font-comfortaa-bold">
+                  {' '}
+                  minutes
+                </Text>
+              </Text>
+            </View>
           </View>
 
           {/* Other Settings */}
@@ -314,7 +405,7 @@ export default function SettingsScreen() {
               <Text className="text-white font-comfortaa">About</Text>
             </TouchableOpacity>
           </View> */}
-        </ScrollView>
+        </View>
       </SafeAreaView>
 
       <ColorPickerModal

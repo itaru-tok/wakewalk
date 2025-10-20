@@ -22,6 +22,8 @@ interface StoredAlarmSettings {
   snoozeEnabled: boolean
   snoozeDurationMinutes: number
   snoozeRepeatCount: number
+  walkGoalMinutes: number
+  walkGoalSteps: number
 }
 
 const DEFAULT_RING_DURATION_MINUTES = 3
@@ -31,6 +33,8 @@ const DEFAULT_SOUND_ENABLED = true
 const DEFAULT_SNOOZE_ENABLED = false
 const DEFAULT_SNOOZE_DURATION_MINUTES = 3
 const DEFAULT_SNOOZE_REPEAT_COUNT = 3
+const DEFAULT_WALK_GOAL_MINUTES = 60
+const DEFAULT_WALK_GOAL_STEPS = 100
 
 export const ALARM_SOUND_IDS = BUILT_IN_SOUNDS.map((sound) => sound.id)
 
@@ -50,6 +54,10 @@ interface AlarmSettingsContextValue {
   setSnoozeDurationMinutes: (minutes: number) => void
   snoozeRepeatCount: number
   setSnoozeRepeatCount: (count: number) => void
+  walkGoalMinutes: number
+  setWalkGoalMinutes: (minutes: number) => void
+  walkGoalSteps: number
+  setWalkGoalSteps: (steps: number) => void
 }
 
 const AlarmSettingsContext = createContext<AlarmSettingsContextValue | null>(
@@ -67,7 +75,9 @@ function validateAlarmSettings(value: unknown): value is StoredAlarmSettings {
     typeof obj.soundEnabled === 'boolean' &&
     typeof obj.snoozeEnabled === 'boolean' &&
     typeof obj.snoozeDurationMinutes === 'number' &&
-    typeof obj.snoozeRepeatCount === 'number'
+    typeof obj.snoozeRepeatCount === 'number' &&
+    typeof obj.walkGoalMinutes === 'number' &&
+    typeof obj.walkGoalSteps === 'number'
   )
 }
 
@@ -82,6 +92,8 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
       snoozeEnabled: DEFAULT_SNOOZE_ENABLED,
       snoozeDurationMinutes: DEFAULT_SNOOZE_DURATION_MINUTES,
       snoozeRepeatCount: DEFAULT_SNOOZE_REPEAT_COUNT,
+      walkGoalMinutes: DEFAULT_WALK_GOAL_MINUTES,
+      walkGoalSteps: DEFAULT_WALK_GOAL_STEPS,
     },
     validate: validateAlarmSettings,
   })
@@ -135,6 +147,20 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
     [setState],
   )
 
+  const setWalkGoalMinutes = useCallback(
+    (minutes: number) => {
+      setState((prev) => ({ ...prev, walkGoalMinutes: minutes }))
+    },
+    [setState],
+  )
+
+  const setWalkGoalSteps = useCallback(
+    (steps: number) => {
+      setState((prev) => ({ ...prev, walkGoalSteps: steps }))
+    },
+    [setState],
+  )
+
   const value = useMemo(
     () => ({
       ringDurationMinutes: state.ringDurationMinutes,
@@ -152,6 +178,10 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
       setSnoozeDurationMinutes,
       snoozeRepeatCount: state.snoozeRepeatCount,
       setSnoozeRepeatCount,
+      walkGoalMinutes: state.walkGoalMinutes,
+      setWalkGoalMinutes,
+      walkGoalSteps: state.walkGoalSteps,
+      setWalkGoalSteps,
     }),
     [
       state,
@@ -162,6 +192,8 @@ export function AlarmSettingsProvider({ children }: { children: ReactNode }) {
       setSnoozeEnabled,
       setSnoozeDurationMinutes,
       setSnoozeRepeatCount,
+      setWalkGoalMinutes,
+      setWalkGoalSteps,
     ],
   )
 
