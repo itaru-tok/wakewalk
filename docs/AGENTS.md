@@ -11,6 +11,8 @@
 - `pnpm dev` starts Expo with tunnel + cache reset. `pnpm dev:client` boots the custom dev client.
 - Platform targets: `pnpm ios`, `pnpm android`, `pnpm web`. Use `pnpm icons` after adding artwork.
 - Quality gates: `pnpm typecheck`, `pnpm lint`, `pnpm lint:fix`, `pnpm format`. Run them before committing.
+- EAS builds: `pnpm eas:build:preview:ios` (TestFlight), `pnpm eas:build:production:ios` (App Store).
+- OTA updates: `pnpm eas:update:preview "message"` or `pnpm eas:update:production "message"` for JavaScript-only changes (no App Store review needed).
 
 ## Coding Style & Naming Conventions
 - TypeScript everywhere; prefer function components and hooks housed in `src/hooks`.
@@ -30,8 +32,9 @@
 - Link Linear/GitHub issues when available and update docs (including this file) if the developer workflow shifts.
 
 ## Configuration Notes
-- Edit Expo settings in `app.json`; native build profiles live in `eas.json`.
+- Edit Expo settings in `app.config.js`; native build profiles and update channels live in `eas.json`.
 - Use `expo prebuild` only when native modules require regeneration (`pnpm prebuild:ios`). Avoid committing credentials or `.env.*` files.
+- OTA updates configured with `runtimeVersion: { policy: 'appVersion' }` in `app.config.js` and update channels in `eas.json`.
 
 ## Environment Variables & Secrets
 - **Local development**: Create a `.env` file in the project root (gitignored). Required variables:

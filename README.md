@@ -125,8 +125,13 @@ pnpm lint:fix         # Auto-fix linting issues
 pnpm format           # Format code with Biome
 
 # Build
-pnpm build:dev:ios    # Build development version for iOS
-pnpm build:preview:ios # Build preview version for iOS
+pnpm eas:build:dev:ios        # Build development version for iOS
+pnpm eas:build:preview:ios    # Build preview version for iOS
+pnpm eas:build:production:ios # Build production version for iOS
+
+# OTA Updates (JavaScript-only changes)
+pnpm eas:update:preview "Bug fix message"      # Push OTA update to preview
+pnpm eas:update:production "Bug fix message"   # Push OTA update to production
 ```
 
 ## 🔧 iOS Native Module Setup (Required for first-time setup)
@@ -248,6 +253,18 @@ The app has 4 build profiles defined in `eas.json`:
 | **production** | No | App Store release (real subscription flow) |
 
 **Important**: `.env` files are not uploaded to EAS build servers. Always use `eas env:create` for remote builds.
+
+## 🔄 OTA Updates
+
+Deploy JavaScript changes instantly without App Store review:
+
+```bash
+pnpm eas:update:preview "Fix message"      # TestFlight
+pnpm eas:update:production "Fix message"   # Production
+```
+
+**OTA-compatible**: JS code, assets, UI changes  
+**Requires new build**: Native code, permissions, environment variables
 
 ## 🎨 Design System
 

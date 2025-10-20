@@ -23,7 +23,9 @@
     "eas:build:production:ios": "eas build --platform ios --profile production",
     "eas:submit:ios": "eas submit --platform ios",
     "eas:build:production:ios:auto-submit": "eas build --platform ios --profile production --auto-submit",
-    "prebuild:ios": "npx expo prebuild -p ios"
+    "prebuild:ios": "npx expo prebuild -p ios",
+    "eas:update:preview": "eas update --branch preview --message",
+    "eas:update:production": "eas update --branch production --message"
   },
   "dependencies": {
     "@expo-google-fonts/comfortaa": "^0.4.1",

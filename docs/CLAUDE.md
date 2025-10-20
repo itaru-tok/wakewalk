@@ -24,6 +24,14 @@ pnpm typecheck     # Run TypeScript type checking
 pnpm lint          # Run Biome linting
 pnpm lint:fix      # Run Biome linting with auto-fix
 pnpm format        # Format code with Biome
+
+# Builds
+pnpm eas:build:preview:ios      # TestFlight build
+pnpm eas:build:production:ios   # App Store build
+
+# OTA Updates (JavaScript-only, no App Store review)
+pnpm eas:update:preview "Fix bug"      # Push to TestFlight users
+pnpm eas:update:production "Fix bug"   # Push to App Store users
 ```
 
 ## Architecture
@@ -149,3 +157,27 @@ eas env:create
 
 ### Testing Premium Features
 Set `EXPO_PUBLIC_PREMIUM_OVERRIDE="true"` in `.env` to bypass RevenueCat checks during development.
+
+## OTA Updates
+
+### What Can Be Updated via OTA
+- ✅ JavaScript code changes (React components, hooks, business logic)
+- ✅ Asset updates (images, fonts)
+- ✅ Bug fixes, UI tweaks
+
+### What Cannot Be Updated via OTA
+- ❌ Native code (Swift/Objective-C)
+- ❌ Info.plist changes, permission changes
+- ❌ Native library updates
+- ❌ Environment variable changes (embedded at build time)
+
+### Usage
+```bash
+# Push OTA update to preview (TestFlight)
+pnpm eas:update:preview "Fix: Stats screen calculation bug"
+
+# Push OTA update to production (App Store)
+pnpm eas:update:production "Fix: Alarm notification issue"
+```
+
+OTA updates are applied to devices with matching `runtimeVersion` (based on app version). Updates are instant and don't require App Store review.

@@ -23,6 +23,12 @@ export default {
     owner: 'itaruo93o',
     scheme: 'wakewalk',
     userInterfaceStyle: 'automatic',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    updates: {
+      url: 'https://u.expo.dev/bab41865-be8c-4986-a1a4-fbae81a463e4',
+    },
 
     plugins: [
       'expo-router',
