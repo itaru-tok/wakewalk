@@ -50,6 +50,7 @@
     "expo-router": "~6.0.1",
     "expo-sensors": "~15.0.7",
     "expo-splash-screen": "^31.0.10",
+    "expo-updates": "~29.0.12",
     "nativewind": "^4.0.36",
     "react": "19.1.0",
     "react-dom": "19.1.0",
