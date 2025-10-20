@@ -32,3 +32,22 @@
 ## Configuration Notes
 - Edit Expo settings in `app.json`; native build profiles live in `eas.json`.
 - Use `expo prebuild` only when native modules require regeneration (`pnpm prebuild:ios`). Avoid committing credentials or `.env.*` files.
+
+## Environment Variables & Secrets
+- **Local development**: Create a `.env` file in the project root (gitignored). Required variables:
+  - `EXPO_PUBLIC_REVENUECAT_IOS_KEY`: RevenueCat API key for subscription management
+  - `EXPO_PUBLIC_ADMOB_IOS_BANNER`: AdMob banner ad unit ID
+  - `EXPO_PUBLIC_PREMIUM_OVERRIDE`: Set to `"true"` to bypass subscription checks locally
+- **EAS builds**: Never commit `.env` files. Use `eas env:create` to configure secrets for `development`, `preview`, and `production` environments.
+- **Verification**: Run `eas env:list --environment <env>` to check configured secrets.
+- **Why this matters**: Without proper environment variables, RevenueCat fails to initialize (breaking subscriptions) and AdMob shows no ads in production builds.
+
+## Premium Features & Monetization
+- **Free tier**: 100 steps in 60 minutes goal, single color theme, ads on stats page
+- **Premium tier** (`isPremium` from `PremiumContext`):
+  - Gradient theme color with up to 3 colors
+  - Custom walk goals (steps & minutes)
+  - Ad-free experience
+- **RevenueCat integration**: Configured in `src/utils/revenuecat.ts`, consumed via `PremiumContext`
+- **AdMob ads**: Only shown to free users; controlled by `!isPremium` check in `stats.tsx`
+- **Testing premium features**: Set `EXPO_PUBLIC_PREMIUM_OVERRIDE="true"` in `.env` to bypass subscription checks

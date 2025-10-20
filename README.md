@@ -12,12 +12,22 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 
 ## 📱 Features
 
+### Core Features
 - **Clean Interface**: Minimalist design with glass morphism effects
 - **Time Picker**: Easy-to-use scroll picker for setting wake-up targets
 - **Contribution Graph**: Visual representation of your wake-up consistency
-- **Settings**: Configure sound, vibration, and snooze preferences
-- **AdMob Integration**: Banner ads support
-- **Cross-Platform**: Works on iOS, Android, and Web
+- **Alarm System**: Native iOS alarm with customizable sounds
+- **Wake Walk Session**: Track your steps immediately after waking up
+- **Streak Tracking**: Current and longest wake-up streaks
+
+### Premium Features 💎
+- **Gradient theme color with up to 3 colors
+- **Custom Walk Goals**: Set your own step count and time requirements
+- **Ad-Free Experience**: No banner ads
+
+### Monetization
+- **AdMob Integration**: Banner ads for free users
+- **RevenueCat**: In-app subscription management
 
 ## 🛠 Tech Stack
 
@@ -25,7 +35,10 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
 - **Routing**: Expo Router with typed routes
 - **UI Styling**: NativeWind (Tailwind CSS for React Native)
 - **State Management**: React hooks with AsyncStorage
-- **Monetization**: AdMob for ads
+- **Monetization**: 
+  - AdMob for banner ads (free users)
+  - RevenueCat for subscription management
+- **Native Modules**: Custom Swift module for alarm functionality
 - **Language**: TypeScript
 - **Code Quality**: Biome for linting and formatting
 - **Package Manager**: pnpm
@@ -75,7 +88,21 @@ WakeWalk tracks your wake-up consistency using Apple Health step count data, dis
    pnpm install
    ```
 
-3. **Start the development server**
+3. **Set up environment variables**
+   
+   Create a `.env` file in the project root:
+   ```bash
+   # RevenueCat API Key (iOS)
+   EXPO_PUBLIC_REVENUECAT_IOS_KEY=your_revenuecat_api_key
+   
+   # AdMob Banner ID (iOS)
+   EXPO_PUBLIC_ADMOB_IOS_BANNER=your_admob_banner_id
+   
+   # Optional: Bypass premium check for local development
+   EXPO_PUBLIC_PREMIUM_OVERRIDE=true
+   ```
+
+4. **Start the development server**
    ```bash
    pnpm dev
    ```
@@ -162,16 +189,65 @@ It can be confusing because there are three copies in the repo:
 
 Keep the first two files in sync if you modify the native code. A quick way is to edit `ios-modules/AlarmManager.swift` and then copy it to `ios/AlarmManager.swift` (or rerun the prebuild step) before building.
 
-### Environment Variables (EAS)
+## 🔐 Environment Variables
 
-Remember to register the public keys used in production builds. These values are safe to expose in the client binary, but they must exist when running the EAS pipeline:
+### Local Development
+
+Create a `.env` file in the project root (this file is gitignored):
 
 ```bash
-eas env:create production --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value YOUR_REVENUECAT_PUB_KEY --visibility plaintext
-eas env:create production --name EXPO_PUBLIC_ADMOB_IOS_BANNER --value YOUR_ADMOB_APP_ID --visibility plaintext
+# RevenueCat API Key for iOS
+EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxxxxxxxxxxxx
+
+# AdMob Banner ID for iOS
+EXPO_PUBLIC_ADMOB_IOS_BANNER=ca-app-pub-xxxxxxxxxxxxx/xxxxxxxxxxxxx
+
+# Optional: Enable premium features locally without subscription
+EXPO_PUBLIC_PREMIUM_OVERRIDE=true
 ```
 
-If you need the same values for other environments (preview or development), replace `production` with the desired environment name.
+**Note**: When `EXPO_PUBLIC_PREMIUM_OVERRIDE=true`, the app will bypass RevenueCat checks and always treat the user as premium. This is useful for local development and testing premium features.
+
+### EAS Build (TestFlight & Production)
+
+For EAS builds, environment variables must be configured using **EAS Secrets** (not committed to git):
+
+```bash
+# Configure environment variables for all environments
+eas env:create
+
+# Follow the interactive prompts:
+# 1. Variable name: EXPO_PUBLIC_REVENUECAT_IOS_KEY
+# 2. Variable value: appl_xxxxxxxxxxxxx
+# 3. Select visibility: Sensitive
+# 4. Select environments: development, preview, production
+
+# Repeat for AdMob:
+eas env:create
+# 1. Variable name: EXPO_PUBLIC_ADMOB_IOS_BANNER
+# 2. Variable value: ca-app-pub-xxxxxxxxxxxxx/xxxxxxxxxxxxx
+# 3. Select visibility: Sensitive
+# 4. Select environments: development, preview, production
+```
+
+**Verify your configuration:**
+```bash
+eas env:list --environment preview
+eas env:list --environment production
+```
+
+### Build Profiles
+
+The app has 4 build profiles defined in `eas.json`:
+
+| Profile | Premium Override | Purpose |
+|---------|-----------------|---------|
+| **development** | No | Development builds with dev client |
+| **personal** | ✅ Yes | Personal testing builds (always premium, no ads) |
+| **preview** | No | TestFlight distribution (real subscription flow) |
+| **production** | No | App Store release (real subscription flow) |
+
+**Important**: `.env` files are not uploaded to EAS build servers. Always use `eas env:create` for remote builds.
 
 ## 🎨 Design System
 

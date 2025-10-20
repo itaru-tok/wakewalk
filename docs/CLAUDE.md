@@ -33,6 +33,10 @@ pnpm format        # Format code with Biome
 - **Routing**: Expo Router with typed routes
 - **UI Styling**: NativeWind (Tailwind CSS for React Native)
 - **State Management**: React hooks with AsyncStorage for persistence
+- **Monetization**: 
+  - AdMob for banner ads (free users only)
+  - RevenueCat for subscription management
+- **Native Modules**: Custom Swift module for alarm functionality
 - **Language**: TypeScript
 - **Code Quality**: Biome for linting and formatting
 - **Package Manager**: pnpm
@@ -41,12 +45,20 @@ pnpm format        # Format code with Biome
 ```
 ├── docs/                    # Documentation
 ├── src/                     # Source code
-│   ├── components/          # Reusable UI components
+│   ├── components/          # Reusable UI components (PaywallModal, MyAdmob, etc.)
 │   ├── constants/           # Theme and configuration constants
+│   ├── context/             # React Context providers (PremiumContext, AlarmSettingsContext)
+│   ├── hooks/               # Custom React hooks (useAlarmHandler, useStreaks, etc.)
+│   ├── native/              # Native module interfaces
+│   ├── storage/             # AsyncStorage utilities
 │   ├── styles/              # Global styles (Tailwind)
-│   └── types/               # TypeScript type definitions
-├── app/(tabs)/              # Expo Router screens
-├── assets/                  # Static assets (icons, images)
+│   ├── types/               # TypeScript type definitions
+│   └── utils/               # Utility functions (revenuecat.ts, etc.)
+├── app/                     # Expo Router screens
+│   ├── (tabs)/              # Main tab screens (index, stats, settings)
+│   └── (modals)/            # Modal screens (sound, duration, snooze)
+├── assets/                  # Static assets (icons, sounds)
+├── ios-modules/             # Native Swift modules (AlarmManager)
 └── [config files]           # Root-level configuration
 ```
 
@@ -86,7 +98,54 @@ Currently implemented with mock data for development:
 - `LAST_PROCESSED_DATE`: Last date processed to avoid recomputation
 
 ### Development Notes
-- Stats screen currently uses mock data generation for demonstration
-- Health integration is prepared but commented out for development
-- Error handling simplified for cleaner development experience
+- Stats screen uses real streak data and calendar tracking
+- Native iOS alarm system with custom sounds
+- Premium features controlled via RevenueCat subscriptions
 - Biome configuration enforces consistent code style and quality
+
+## Environment Variables
+
+### Local Development
+Create a `.env` file in the project root (automatically gitignored):
+```bash
+EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxxxxxxxxxxxx
+EXPO_PUBLIC_ADMOB_IOS_BANNER=ca-app-pub-xxxxxxxxxxxxx/xxxxxxxxxxxxx
+EXPO_PUBLIC_PREMIUM_OVERRIDE=true  # Optional: bypass subscription checks
+```
+
+### EAS Builds
+Use `eas env:create` to configure secrets for each environment:
+```bash
+eas env:create
+# Select: EXPO_PUBLIC_REVENUECAT_IOS_KEY
+# Visibility: Sensitive
+# Environments: development, preview, production
+
+eas env:create
+# Select: EXPO_PUBLIC_ADMOB_IOS_BANNER
+# Visibility: Sensitive
+# Environments: development, preview, production
+```
+
+**Important**: `.env` files are NOT uploaded to EAS. Always use `eas env:create` for remote builds.
+
+## Premium Features
+
+### Free Tier
+- Fixed walk goal: 100 steps in 60 minutes
+- Single color theme
+- Ads on stats page
+
+### Premium Tier (Monthly Subscription)
+- Gradient theme color with up to 3 colors
+- Custom walk goals (steps & minutes)
+- Ad-free experience
+
+### Implementation
+- Premium status: `usePremium()` hook from `PremiumContext`
+- RevenueCat configuration: `src/utils/revenuecat.ts`
+- Paywall UI: `src/components/PaywallModal.tsx`
+- Ad display: Conditional on `!isPremium` in `app/(tabs)/stats.tsx`
+
+### Testing Premium Features
+Set `EXPO_PUBLIC_PREMIUM_OVERRIDE="true"` in `.env` to bypass RevenueCat checks during development.

@@ -16,6 +16,7 @@
     "icons": "node scripts/generate-icons.js",
     "eas": "eas",
     "eas:login": "eas login",
+    "eas:env:create": "eas env:create",
     "eas:build:dev:ios": "eas build --platform ios --profile development",
     "eas:build:personal:ios": "eas build --platform ios --profile personal",
     "eas:build:preview:ios": "eas build --platform ios --profile preview",
