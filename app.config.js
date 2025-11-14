@@ -1,18 +1,31 @@
 import 'dotenv/config'
 
-// ビルドプロファイルに応じてバンドルIDを動的に変更
+// ビルドバリアントに応じてバンドルIDを決定
+// APP_VARIANT を最優先にし、次に EAS_BUILD_PROFILE を参照
 const getBundleIdentifier = () => {
-  const profile = process.env.EAS_BUILD_PROFILE
   const baseBundleId = 'com.itaruo93o.wakewalk'
+  const variant =
+    process.env.APP_VARIANT ?? process.env.EAS_BUILD_PROFILE ?? 'development'
 
-  // ローカル開発（pnpm ios）の場合は.devサフィックス
-  if (!profile || profile === 'development') {
+  if (variant === 'development') {
     return `${baseBundleId}.dev`
-  } else if (profile === 'personal') {
+  }
+  if (variant === 'personal') {
     return `${baseBundleId}.personal`
   }
-  // preview と production は同じバンドルID
+  // preview / production は本番と同じ
   return baseBundleId
+}
+
+// OTA更新の設定（開発時のみ無効化）
+const getUpdatesConfig = () => {
+  const variant =
+    process.env.APP_VARIANT ?? process.env.EAS_BUILD_PROFILE ?? 'development'
+
+  return {
+    enabled: variant !== 'development', // 開発環境のみ無効
+    url: 'https://u.expo.dev/bab41865-be8c-4986-a1a4-fbae81a463e4',
+  }
 }
 
 export default {
@@ -23,12 +36,8 @@ export default {
     owner: 'itaruo93o',
     scheme: 'wakewalk',
     userInterfaceStyle: 'automatic',
-    runtimeVersion: {
-      policy: 'appVersion',
-    },
-    updates: {
-      url: 'https://u.expo.dev/bab41865-be8c-4986-a1a4-fbae81a463e4',
-    },
+    runtimeVersion: '1.0.0',
+    updates: getUpdatesConfig(),
 
     plugins: [
       'expo-router',
@@ -53,7 +62,6 @@ export default {
           ],
         },
       ],
-      './plugins/withAlarmManager',
       [
         'react-native-google-mobile-ads',
         {
@@ -75,6 +83,8 @@ export default {
           imageWidth: 200,
         },
       ],
+      // Must be last to fix AppDelegate.swift after expo-dev-client
+      './plugins/withAlarmManager',
     ],
 
     experiments: {

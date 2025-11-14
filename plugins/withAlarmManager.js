@@ -127,6 +127,71 @@ function withAlarmManager(config) {
     return config
   })
 
+  // Final fix: Ensure AppDelegate.swift is correct after all plugins run
+  // This MUST run after expo-dev-client to fix the AppDelegate format
+  config = withDangerousMod(config, [
+    'ios',
+    async (config) => {
+      console.log('🔧 [withAlarmManager] Starting AppDelegate.swift fix check...')
+      const projectName = config.modRequest.projectName || 'WakeWalk'
+      const iosPath = path.join(
+        config.modRequest.platformProjectRoot,
+        projectName,
+      )
+      const appDelegatePath = path.join(iosPath, 'AppDelegate.swift')
+      console.log(`🔧 [withAlarmManager] AppDelegate path: ${appDelegatePath}`)
+
+      if (fs.existsSync(appDelegatePath)) {
+        const currentContent = fs.readFileSync(appDelegatePath, 'utf8')
+
+        const hasOldCode =
+          currentContent.includes('ExpoReactNativeFactory') ||
+          currentContent.includes('reactNativeFactory') ||
+          currentContent.includes('ExpoReactNativeFactoryDelegate') ||
+          currentContent.includes('bindReactNativeFactory') ||
+          currentContent.includes('ReactNativeDelegate') ||
+          currentContent.includes('ExpoReactDelegate') ||
+          currentContent.includes('@UIApplicationMain')
+
+        const hasCorrectFormat =
+          currentContent.includes('import ExpoModulesCore') &&
+          currentContent.includes('@main') &&
+          currentContent.includes('self.moduleName = "main"') &&
+          currentContent.includes('self.initialProps = [:]')
+
+        const needsFix = hasOldCode || !hasCorrectFormat
+
+        if (needsFix) {
+          const correctAppDelegate = `import ExpoModulesCore
+
+@main
+class AppDelegate: ExpoAppDelegate {
+  public override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    self.moduleName = "main"
+    self.initialProps = [:]
+    
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}
+`
+          fs.writeFileSync(appDelegatePath, correctAppDelegate, 'utf8')
+          console.log(
+            '✅ Fixed AppDelegate.swift for Expo SDK 54 (removed old Expo SDK code)',
+          )
+        } else {
+          console.log('✅ AppDelegate.swift is already correct for Expo SDK 54')
+        }
+      } else {
+        console.log('⚠️ AppDelegate.swift not found, skipping fix')
+      }
+
+      return config
+    },
+  ])
+
   return config
 }
 
